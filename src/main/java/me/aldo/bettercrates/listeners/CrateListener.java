@@ -94,7 +94,30 @@ public class CrateListener implements Listener {
         }
     }
     @EventHandler public void onDrag(InventoryDragEvent e){
-        String title=e.getView().getTitle();if(!title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)&&!title.startsWith(CrateMenu.KEY_ITEM_PREFIX))return;
+        String title=e.getView().getTitle();
+        if(title.startsWith(CrateMenu.REWARDS_PREFIX)){
+            e.setCancelled(true);
+            if(e.getRawSlots().size()==1){
+                int raw=e.getRawSlots().iterator().next();ItemStack old=e.getOldCursor();
+                if(raw>=0&&raw<45&&old!=null&&old.getType()!=Material.AIR&&e.getWhoClicked() instanceof Player){
+                    String data=title.substring(CrateMenu.REWARDS_PREFIX.length());int split=data.lastIndexOf(':');
+                    if(split>0){
+                        String crateId=data.substring(0,split);int page;
+                        try{page=Integer.parseInt(data.substring(split+1));}catch(NumberFormatException ex){return;}
+                        YamlConfiguration c=plugin.getCrateManager().getConfiguration();String base="crates."+crateId+".rewards.";
+                        List<String> ids=new ArrayList<String>();
+                        if(c.isConfigurationSection(base.substring(0,base.length()-1)))ids.addAll(c.getConfigurationSection(base.substring(0,base.length()-1)).getKeys(false));
+                        Collections.sort(ids);int index=page*45+raw;String rewardId=index<ids.size()?ids.get(index):null;
+                        if(rewardId==null){int n=1;while(c.isConfigurationSection(base+"reward-"+n))n++;rewardId="reward-"+n;}
+                        c.set(base+rewardId+".item",old.clone());
+                        if(!c.contains(base+rewardId+".chance"))c.set(base+rewardId+".chance",100.0);
+                        plugin.getCrateManager().save();plugin.getCrateMenu().openRewards((Player)e.getWhoClicked(),crateId,page);
+                    }
+                }
+            }
+            return;
+        }
+        if(!title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)&&!title.startsWith(CrateMenu.KEY_ITEM_PREFIX))return;
         if(e.getRawSlots().contains(13)){e.setCancelled(true);if(e.getWhoClicked() instanceof Player){Player p=(Player)e.getWhoClicked();ItemStack old=e.getOldCursor();if(old!=null&&old.getType()!=Material.AIR){boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);if((crate&&old.getType().isBlock())||(!crate&&old.getType().isItem())){selectedMaterial.put(p.getUniqueId(),old.getType().name());p.sendMessage(plugin.color("&aSeleccionado: &e"+old.getType().name()));}}}}
     }
     @EventHandler public void onChat(AsyncPlayerChatEvent e){
