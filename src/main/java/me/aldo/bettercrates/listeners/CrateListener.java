@@ -40,7 +40,7 @@ public class CrateListener implements Listener {
             boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);String id=title.substring((crate?CrateMenu.CRATE_BLOCK_PREFIX:CrateMenu.KEY_ITEM_PREFIX).length());
             if(s==22){selectedMaterial.remove(p.getUniqueId());if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
             else if(s==11)prompt(p,crate?InputType.CRATE_BLOCK_MATERIAL:InputType.KEY_MATERIAL,id,"Escribe el material Bukkit");
-            else if(s==13){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&((crate&&cursor.getType().isBlock())||(!crate&&cursor.getType().isItem()))){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(plugin.color("&aSeleccionado: &e"+cursor.getType().name()));m.refresh(p,title);}}
+            else if(s==13){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&((crate&&cursor.getType().isBlock())||(!crate&&cursor.getType().isItem()))){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(plugin.color("&aSeleccionado: &e"+cursor.getType().name()));}}
             else if(s==15){String mat=selectedMaterial.remove(p.getUniqueId());if(mat==null)mat=c.getString(crate?"crates."+id+".block.material":"keys."+id+".material");c.set(crate?"crates."+id+".block.material":"keys."+id+".material",mat);plugin.getCrateManager().save();p.sendMessage(plugin.color("&aMaterial guardado: &e"+mat));if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
             return;
         }
