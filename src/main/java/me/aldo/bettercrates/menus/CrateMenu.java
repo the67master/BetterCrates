@@ -96,6 +96,7 @@ public class CrateMenu {
         inv.setItem(14, item(Material.TRIPWIRE_HOOK, "&6Asignar llave", "&7Actual: &f" + c.getString("crates." + id + ".key-id", id), "&eClick y escribe el ID de la llave"));
         inv.setItem(16, item(Material.IRON_DOOR, "&dPermiso para abrir", "&7Requerido: " + (permission ? "&aSí" : "&cNo"),
                 "&7Nodo: &f" + c.getString(p + "permission.node"), "&eClick para activar/desactivar"));
+        inv.setItem(18, item(Material.PAPER, "&eCambiar nodo de permiso", "&7Actual: &f" + c.getString(p + "permission.node"), "&eClick y escribe el nodo"));
         inv.setItem(22, item(Material.ARROW, "&cVolver"));
         fill(inv);
         player.openInventory(inv);

@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class CrateListener implements Listener {
-    private enum InputType { CREATE_CRATE, CREATE_KEY, CRATE_NAME, CRATE_KEY, KEY_NAME, KEY_MATERIAL, KEY_PERMISSION }
+    private enum InputType { CREATE_CRATE, CREATE_KEY, CRATE_NAME, CRATE_KEY, CRATE_PERMISSION, KEY_NAME, KEY_MATERIAL, KEY_PERMISSION }
     private static class Pending {
         private final InputType type;
         private final String id;
@@ -86,7 +86,7 @@ public class CrateListener implements Listener {
             else if (slot == 16) {
                 c.set(p + "permission.enabled", !c.getBoolean(p + "permission.enabled", false));
                 plugin.getCrateManager().save(); menu.openCrateSettings(player, id);
-            }
+            } else if (slot == 18) prompt(player, InputType.CRATE_PERMISSION, id, "Escribe el nodo de permiso para abrir esta crate:");
             return;
         }
         if (title.startsWith(CrateMenu.KEY_PREFIX)) {
@@ -129,6 +129,9 @@ public class CrateListener implements Listener {
                         menuMain(player); break;
                     case CRATE_NAME:
                         c.set("crates." + action.id + ".settings.display-name", value);
+                        saveAndOpen(player, false, action.id); break;
+                    case CRATE_PERMISSION:
+                        c.set("crates." + action.id + ".settings.permission.node", value);
                         saveAndOpen(player, false, action.id); break;
                     case CRATE_KEY:
                         if (!plugin.getCrateManager().keyExists(value)) {
