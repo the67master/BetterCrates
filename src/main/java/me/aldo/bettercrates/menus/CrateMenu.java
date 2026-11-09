@@ -104,13 +104,18 @@ public class CrateMenu {
         inv.setItem(16,item(Material.ENCHANTED_BOOK,"&dEnchantment Glint","&7"+(c.getBoolean(path+"glint",false)?"&aEnabled":"&cDisabled")));
         inv.setItem(40,item(Material.ARROW,"&cBack")); fill(inv); p.openInventory(inv);
     }
-    public void openCrateBlockEditor(Player p,String id){
+    public void openCrateBlockEditor(Player p,String id){ openCrateBlockEditor(p,id,null); }
+    public void openCrateBlockEditor(Player p,String id,String selected){
         Inventory inv=Bukkit.createInventory(null,27,CRATE_BLOCK_PREFIX+id); YamlConfiguration c=plugin.getCrateManager().getConfiguration();
-        String m=c.getString("crates."+id+".block.material","CHEST"); Material mat=Material.matchMaterial(m); if(mat==null)mat=Material.CHEST;
+        String m=selected==null?c.getString("crates."+id+".block.material","CHEST"):selected;
+        Material mat=selected!=null&&selected.isEmpty()?null:Material.matchMaterial(m);
+        if(mat==null&&! (selected!=null&&selected.isEmpty())){mat=Material.CHEST;m="CHEST";}
         inv.setItem(11,item(Material.PAPER,"&eWrite Material","&7Enter the Bukkit block material name"));
-        inv.setItem(13,item(mat,"&aSelected Block","&7Current: &f"+m,"&eDrag a block here from your inventory"));
+        if(mat!=null)inv.setItem(13,item(mat,"&aSelected Block","&7Current: &f"+m,"&eDrag a block here from your inventory"));
         inv.setItem(15,item(Material.EMERALD,"&aSave Block","&7Save the selected material"));
-        inv.setItem(22,item(Material.ARROW,"&cBack")); fill(inv); p.openInventory(inv);
+        inv.setItem(22,item(Material.ARROW,"&cBack")); fill(inv);
+        if(selected!=null&&selected.isEmpty())inv.setItem(13,null);
+        p.openInventory(inv);
     }
     public void openKeyItemEditor(Player p,String id){
         Inventory inv=Bukkit.createInventory(null,27,KEY_ITEM_PREFIX+id); YamlConfiguration c=plugin.getCrateManager().getConfiguration();

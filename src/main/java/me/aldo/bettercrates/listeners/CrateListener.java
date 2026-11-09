@@ -73,7 +73,13 @@ public class CrateListener implements Listener {
             else if(s==12)prompt(p,InputType.HOLOGRAM_LINE,id+"|0","Enter hologram line 1");
             else if(s==13)prompt(p,InputType.HOLOGRAM_LINE,id+"|1","Enter hologram line 2");
             else if(s==14)prompt(p,InputType.HOLOGRAM_LINE,id+"|2","Enter hologram line 3");
-            else if(s==16){c.set(base+"enabled",true);c.set(base+"lines",Arrays.asList("%crate_name%","&7Right-Click to open!","&7Left-Click to Preview!"));plugin.getCrateManager().save();plugin.getHologramManager().refreshCrate(id);m.openHologramEditor(p,id);}
+            else if(s==16){
+                List<String> defaults=new ArrayList<String>(plugin.getConfig().getStringList("customization.hologram.default-lines"));
+                if(defaults.isEmpty())defaults.addAll(Arrays.asList("%crate_name%","&7Right-Click to open!","&7Left-Click to preview!"));
+                while(defaults.size()<3)defaults.add("");
+                if(defaults.size()>3)defaults=new ArrayList<String>(defaults.subList(0,3));
+                c.set(base+"enabled",true);c.set(base+"lines",defaults);plugin.getCrateManager().save();plugin.getHologramManager().refreshCrate(id);m.openHologramEditor(p,id);
+            }
             return;
         }
         if(title.startsWith(CrateMenu.PREVIEW_PREFIX)){
@@ -115,8 +121,26 @@ public class CrateListener implements Listener {
             boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);String id=title.substring((crate?CrateMenu.CRATE_BLOCK_PREFIX:CrateMenu.KEY_ITEM_PREFIX).length());
             if(s==22){selectedMaterial.remove(p.getUniqueId());if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
             else if(s==11)prompt(p,crate?InputType.CRATE_BLOCK_MATERIAL:InputType.KEY_MATERIAL,id,"Enter a Bukkit material name");
-            else if(s==13&&crate){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&cursor.getType().isBlock()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(text("&aSelected block: &e"+cursor.getType().name()));}else{selectedMaterial.put(p.getUniqueId(),"");e.getView().getTopInventory().setItem(13,null);p.sendMessage(text("&eBlock selection cleared. Choose a block or save to restore the chest."));}}else if(s==13&&!crate){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&cursor.getType().isItem()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(text("&aSelected: &e"+cursor.getType().name()));}}
-            else if(s==15){String mat=selectedMaterial.remove(p.getUniqueId());if(crate&&mat!=null&&mat.isEmpty()){c.set("crates."+id+".block.material","CHEST");plugin.getCrateManager().save();p.sendMessage(text("&cYou must assign a block. The crate block has been restored to CHEST."));m.openCrateBlockEditor(p,id);return;}if(mat==null)mat=c.getString(crate?"crates."+id+".block.material":"keys."+id+".material");c.set(crate?"crates."+id+".block.material":"keys."+id+".material",mat);plugin.getCrateManager().save();p.sendMessage(text("&aMaterial saved: &e"+mat));if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
+            else if(s==13&&crate){
+                ItemStack cursor=e.getCursor();
+                if(cursor==null||cursor.getType()==Material.AIR){selectedMaterial.put(p.getUniqueId(),"");m.openCrateBlockEditor(p,id,"");p.sendMessage(text("&eBlock selection cleared. Choose a block or save to restore the default block."));}
+                else if(cursor.getType().isBlock()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());m.openCrateBlockEditor(p,id,cursor.getType().name());p.sendMessage(text("&aSelected block: &e"+cursor.getType().name()));}
+                else p.sendMessage(text("&cOnly blocks can be assigned as a crate block."));
+            }else if(s==13&&!crate){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&cursor.getType().isItem()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(text("&aSelected: &e"+cursor.getType().name()));}}
+            else if(s==15){
+                String mat=selectedMaterial.remove(p.getUniqueId());
+                if(crate&&mat!=null&&mat.isEmpty()){
+                    String fallback=plugin.getConfig().getString("customization.crate.default-block","CHEST");
+                    Material fallbackMaterial=Material.matchMaterial(fallback);
+                    if(fallbackMaterial==null||!fallbackMaterial.isBlock())fallbackMaterial=Material.CHEST;
+                    c.set("crates."+id+".block.material",fallbackMaterial.name());plugin.getCrateManager().save();
+                    p.sendMessage(text("&cYou must assign a block. The crate block has been restored to &e"+fallbackMaterial.name()+"&c."));
+                    m.openCrateBlockEditor(p,id);return;
+                }
+                if(mat==null)mat=c.getString(crate?"crates."+id+".block.material":"keys."+id+".material");
+                c.set(crate?"crates."+id+".block.material":"keys."+id+".material",mat);plugin.getCrateManager().save();
+                p.sendMessage(text("&aMaterial saved: &e"+mat));if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);
+            }
             return;
         }
         if(title.startsWith(CrateMenu.CRATE_PREFIX)){
@@ -171,7 +195,17 @@ public class CrateListener implements Listener {
             return;
         }
         if(!title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)&&!title.startsWith(CrateMenu.KEY_ITEM_PREFIX))return;
-        if(e.getRawSlots().contains(13)){e.setCancelled(true);if(e.getWhoClicked() instanceof Player){Player p=(Player)e.getWhoClicked();ItemStack old=e.getOldCursor();if(old!=null&&old.getType()!=Material.AIR){boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);if((crate&&old.getType().isBlock())||(!crate&&old.getType().isItem())){selectedMaterial.put(p.getUniqueId(),old.getType().name());p.sendMessage(text("&aSelected: &e"+old.getType().name()));}}}}
+        if(e.getRawSlots().contains(13)){
+            e.setCancelled(true);
+            if(e.getWhoClicked() instanceof Player){
+                Player p=(Player)e.getWhoClicked();ItemStack old=e.getOldCursor();boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);
+                if(old!=null&&old.getType()!=Material.AIR&&((crate&&old.getType().isBlock())||(!crate&&old.getType().isItem()))){
+                    selectedMaterial.put(p.getUniqueId(),old.getType().name());
+                    if(crate)plugin.getCrateMenu().openCrateBlockEditor(p,title.substring(CrateMenu.CRATE_BLOCK_PREFIX.length()),old.getType().name());
+                    p.sendMessage(text("&aSelected: &e"+old.getType().name()));
+                }else if(crate)p.sendMessage(text("&cOnly blocks can be assigned as a crate block."));
+            }
+        }
     }
     @EventHandler public void onChat(AsyncPlayerChatEvent e){
         final Player p=e.getPlayer();final Pending a=pending.remove(p.getUniqueId());if(a==null)return;e.setCancelled(true);final String value=e.getMessage().trim();

@@ -104,7 +104,7 @@ public class KeyAllManager {
     private String chooseWeighted(List<String> ids) {
         double total = 0.0;
         for (String id : ids) { double w = plugin.getConfig().getDouble("keyall.keys." + id, 1.0); if (w > 0 && !Double.isNaN(w) && !Double.isInfinite(w)) total += w; }
-        if (total <= 0) return ids.isEmpty() ? null : ids.get(random.nextInt(ids.size()));
+        if (total <= 0) return null;
         double roll = random.nextDouble() * total;
         for (String id : ids) { double w = plugin.getConfig().getDouble("keyall.keys." + id, 1.0); if (w <= 0 || Double.isNaN(w) || Double.isInfinite(w)) continue; roll -= w; if (roll < 0) return id; }
         for (String id : ids) { double weight = plugin.getConfig().getDouble("keyall.keys." + id, 1.0); if (weight > 0 && !Double.isNaN(weight) && !Double.isInfinite(weight)) return id; }
@@ -120,6 +120,7 @@ public class KeyAllManager {
         if (mode.equals("all")) rewards.addAll(ids);
         else if (mode.equals("weighted")) { String selected = chooseWeighted(ids); if (selected != null) rewards.add(selected); }
         else rewards.add(ids.get(random.nextInt(ids.size())));
+        if (rewards.isEmpty()) { plugin.getLogger().warning("KeyAll skipped: no eligible key has a positive weight."); return; }
         for (Player player : Bukkit.getOnlinePlayers()) {
             for (String id : rewards) {
                 ItemStack item = plugin.getCrateManager().createKeyItem(id, 1);
