@@ -24,14 +24,14 @@ import org.bukkit.inventory.EquipmentSlot;
 import java.util.*;
 
 public class CrateListener implements Listener {
-    private enum InputType { CREATE_CRATE, CREATE_KEY, CRATE_NAME, CRATE_KEY, CRATE_PERMISSION, KEY_NAME, KEY_MATERIAL, KEY_PERMISSION, CRATE_BLOCK_MATERIAL, REWARD_CHANCE, HOLOGRAM_LINE }
+    private enum InputType { CREATE_CRATE, CREATE_KEY, CRATE_NAME, CRATE_KEY, CRATE_PERMISSION, KEY_NAME, KEY_MATERIAL, KEY_PERMISSION, CRATE_BLOCK_MATERIAL, REWARD_CHANCE, HOLOGRAM_LINE, CRATE_MESSAGE }
     private static class Pending { final InputType type; final String id; Pending(InputType t,String i){type=t;id=i;} }
     private final BetterCrates plugin;
     private final Map<UUID,Pending> pending=new HashMap<UUID,Pending>();
     private final Map<UUID,String> selectedMaterial=new HashMap<UUID,String>();
     public CrateListener(BetterCrates plugin){this.plugin=plugin;}
     private void prompt(Player p,InputType t,String id,String message){pending.put(p.getUniqueId(),new Pending(t,id));p.closeInventory();p.sendMessage(plugin.color("&6BetterCrates &8» &e"+message+" &7(escribe cancelar para salir)"));}
-    private boolean isMenu(String t){return t.equals(CrateMenu.MAIN)||t.equals(CrateMenu.CRATES)||t.equals(CrateMenu.KEYS)||t.startsWith(CrateMenu.CRATE_PREFIX)||t.startsWith(CrateMenu.KEY_PREFIX)||t.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||t.startsWith(CrateMenu.KEY_ITEM_PREFIX)||t.startsWith(CrateMenu.REWARDS_PREFIX)||t.startsWith(CrateMenu.PREVIEW_PREFIX)||t.startsWith(CrateMenu.HOLOGRAM_PREFIX);}
+    private boolean isMenu(String t){return t.equals(CrateMenu.MAIN)||t.equals(CrateMenu.CRATES)||t.equals(CrateMenu.KEYS)||t.startsWith(CrateMenu.CRATE_PREFIX)||t.startsWith(CrateMenu.KEY_PREFIX)||t.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||t.startsWith(CrateMenu.KEY_ITEM_PREFIX)||t.startsWith(CrateMenu.REWARDS_PREFIX)||t.startsWith(CrateMenu.PREVIEW_PREFIX)||t.startsWith(CrateMenu.HOLOGRAM_PREFIX)||t.startsWith(CrateMenu.MESSAGES_PREFIX);}
     @EventHandler public void onClick(InventoryClickEvent e){
         if(!(e.getWhoClicked() instanceof Player))return; String title=e.getView().getTitle(); if(!isMenu(title))return; e.setCancelled(true);
         if(e.getRawSlot()<0||e.getRawSlot()>=e.getView().getTopInventory().getSize())return;
@@ -40,6 +40,18 @@ public class CrateListener implements Listener {
         if(title.equals(CrateMenu.CRATES)||title.equals(CrateMenu.KEYS)){if(s==49){m.openMain(p);return;} ItemStack it=e.getCurrentItem();if(it==null||!it.hasItemMeta())return;String id=ChatColor.stripColor(it.getItemMeta().getDisplayName());if(title.equals(CrateMenu.CRATES)&&plugin.getCrateManager().crateExists(id))m.openCrateSettings(p,id);if(title.equals(CrateMenu.KEYS)&&plugin.getCrateManager().keyExists(id))m.openKeySettings(p,id);return;}
 
 
+        if(title.startsWith(CrateMenu.MESSAGES_PREFIX)){
+            String id=title.substring(CrateMenu.MESSAGES_PREFIX.length()),base="crates."+id+".messages.";
+            if(s==22)m.openCrateSettings(p,id);
+            else if(s==10){c.set(base+"enabled",!c.getBoolean(base+"enabled",true));plugin.getCrateManager().save();m.openMessagesEditor(p,id);}
+            else if(s==12){c.set(base+"player.enabled",!c.getBoolean(base+"player.enabled",false));plugin.getCrateManager().save();m.openMessagesEditor(p,id);}
+            else if(s==13)prompt(p,InputType.CRATE_MESSAGE,id+"|player.message","Escribe el mensaje privado (%crate%, %player%)");
+            else if(s==14){c.set(base+"global.enabled",!c.getBoolean(base+"global.enabled",false));plugin.getCrateManager().save();m.openMessagesEditor(p,id);}
+            else if(s==15)prompt(p,InputType.CRATE_MESSAGE,id+"|global.message","Escribe el mensaje global (%crate%, %player%)");
+            else if(s==16){c.set(base+"reward.enabled",!c.getBoolean(base+"reward.enabled",true));plugin.getCrateManager().save();m.openMessagesEditor(p,id);}
+            else if(s==17)prompt(p,InputType.CRATE_MESSAGE,id+"|reward.message","Escribe el mensaje de premio (%crate%, %player%, %reward%)");
+            return;
+        }
         if(title.startsWith(CrateMenu.HOLOGRAM_PREFIX)){
             String id=title.substring(CrateMenu.HOLOGRAM_PREFIX.length()),base="crates."+id+".hologram.";
             if(s==22)m.openCrateSettings(p,id);
@@ -67,11 +79,11 @@ public class CrateListener implements Listener {
             if(s==49){m.openCrateSettings(p,crateId);return;}
             if(s==45){m.openRewards(p,crateId,Math.max(0,page-1));return;}
             if(s==53){m.openRewards(p,crateId,page+1);return;}
-            if(s>=45)return;
+            int contentIndex=CrateMenu.contentIndex(s);if(contentIndex<0)return;
             List<String> ids=new ArrayList<String>();
             if(c.isConfigurationSection(base.substring(0,base.length()-1)))ids.addAll(c.getConfigurationSection(base.substring(0,base.length()-1)).getKeys(false));
             Collections.sort(ids);
-            int index=page*45+s;String rewardId=index<ids.size()?ids.get(index):null;
+            int index=page*CrateMenu.contentSlots().length+contentIndex;String rewardId=index<ids.size()?ids.get(index):null;
             ItemStack cursor=e.getCursor();
             if(cursor!=null&&cursor.getType()!=Material.AIR){
                 if(rewardId==null){int n=1;while(c.isConfigurationSection(base+"reward-"+n))n++;rewardId="reward-"+n;}
@@ -104,6 +116,7 @@ public class CrateListener implements Listener {
             else if(s==17)m.openRewards(p,id,0);
             else if(s==18){String q="crates."+id+".block.glint";c.set(q,!c.getBoolean(q,false));plugin.getCrateManager().save();m.openCrateSettings(p,id);}
             else if(s==19)m.openHologramEditor(p,id);
+            else if(s==20)m.openMessagesEditor(p,id);
             return;
         }
         if(title.startsWith(CrateMenu.KEY_PREFIX)){
@@ -121,8 +134,8 @@ public class CrateListener implements Listener {
         if(title.startsWith(CrateMenu.REWARDS_PREFIX)){
             e.setCancelled(true);
             if(e.getRawSlots().size()==1){
-                int raw=e.getRawSlots().iterator().next();ItemStack old=e.getOldCursor();
-                if(raw>=0&&raw<45&&old!=null&&old.getType()!=Material.AIR&&e.getWhoClicked() instanceof Player){
+                int raw=e.getRawSlots().iterator().next();ItemStack old=e.getOldCursor();int contentIndex=CrateMenu.contentIndex(raw);
+                if(contentIndex>=0&&old!=null&&old.getType()!=Material.AIR&&e.getWhoClicked() instanceof Player){
                     String data=title.substring(CrateMenu.REWARDS_PREFIX.length());int split=data.lastIndexOf(':');
                     if(split>0){
                         String crateId=data.substring(0,split);int page;
@@ -130,7 +143,7 @@ public class CrateListener implements Listener {
                         YamlConfiguration c=plugin.getCrateManager().getConfiguration();String base="crates."+crateId+".rewards.";
                         List<String> ids=new ArrayList<String>();
                         if(c.isConfigurationSection(base.substring(0,base.length()-1)))ids.addAll(c.getConfigurationSection(base.substring(0,base.length()-1)).getKeys(false));
-                        Collections.sort(ids);int index=page*45+raw;String rewardId=index<ids.size()?ids.get(index):null;
+                        Collections.sort(ids);int index=page*CrateMenu.contentSlots().length+contentIndex;String rewardId=index<ids.size()?ids.get(index):null;
                         if(rewardId==null){int n=1;while(c.isConfigurationSection(base+"reward-"+n))n++;rewardId="reward-"+n;}
                         c.set(base+rewardId+".item",old.clone());
                         if(!c.contains(base+rewardId+".chance"))c.set(base+rewardId+".chance",100.0);
@@ -158,6 +171,16 @@ public class CrateListener implements Listener {
                 case CRATE_KEY:if(!plugin.getCrateManager().keyExists(value))p.sendMessage(plugin.color("&cEsa llave no existe."));else c.set("crates."+a.id+".key-id",value);saveOpen(p,false,a.id);break;
                 case KEY_NAME:c.set("keys."+a.id+".display-name",value);saveOpen(p,true,a.id);break;
                 case KEY_PERMISSION:c.set("keys."+a.id+".permission.node",value);saveOpen(p,true,a.id);break;
+                case CRATE_MESSAGE:{
+                    String[] parts=a.id.split("\\|",2);
+                    if(parts.length!=2){mMain(p);break;}
+                    String field=parts[1];
+                    if(!field.equals("player.message")&&!field.equals("global.message")&&!field.equals("reward.message")){mMain(p);break;}
+                    c.set("crates."+parts[0]+".messages."+field,value);
+                    plugin.getCrateManager().save();
+                    plugin.getCrateMenu().openMessagesEditor(p,parts[0]);
+                    break;
+                }
                 case HOLOGRAM_LINE:{
                     String[] parts=a.id.split("\\|",2);
                     if(parts.length!=2){mMain(p);break;}
@@ -183,6 +206,19 @@ public class CrateListener implements Listener {
                 case KEY_MATERIAL:case CRATE_BLOCK_MATERIAL:Material mat=Material.matchMaterial(value);boolean crate=a.type==InputType.CRATE_BLOCK_MATERIAL;if(mat==null||mat==Material.AIR||(crate&&!mat.isBlock()))p.sendMessage(plugin.color("&cMaterial inválido."));else{c.set(crate?"crates."+a.id+".block.material":"keys."+a.id+".material",mat.name());plugin.getCrateManager().save();}if(crate)plugin.getCrateMenu().openCrateBlockEditor(p,a.id);else plugin.getCrateMenu().openKeyItemEditor(p,a.id);break;
             }
         }});
+    }
+    private String getRewardName(ItemStack prize){
+        String name=null;
+        if(prize.hasItemMeta()&&prize.getItemMeta().hasDisplayName()){
+            name=ChatColor.stripColor(prize.getItemMeta().getDisplayName());
+        }
+        if(name==null||name.trim().isEmpty()){
+            String type=prize.getType().name().toLowerCase(Locale.ENGLISH).replace('_',' ');
+            if(type.equals("grilled pork"))name="chuleta";
+            else if(type.equals("pork"))name="chuleta cruda";
+            else name=type;
+        }
+        return (prize.getAmount()>1?prize.getAmount()+" ":"")+name;
     }
     private void saveOpen(Player p,boolean key,String id){plugin.getCrateManager().save();if(key)plugin.getCrateMenu().openKeySettings(p,id);else plugin.getCrateMenu().openCrateSettings(p,id);}
     private void mMain(Player p){plugin.getCrateMenu().openMain(p);}
@@ -278,7 +314,27 @@ public class CrateListener implements Listener {
         ItemStack prize=c.getItemStack(rewardsPath+selected+".item").clone();
         Map<Integer,ItemStack> leftovers=p.getInventory().addItem(prize);
         for(ItemStack leftover:leftovers.values())p.getWorld().dropItemNaturally(p.getLocation(),leftover);
-        p.sendMessage(plugin.color("&a¡Abriste la crate &e"+id+"&a y recibiste &e"+prize.getAmount()+"x "+prize.getType().name()+"&a!"));
+        String messageBase=cratePath+"messages.";
+        if(c.getBoolean(messageBase+"enabled",true)){
+            String crateName=c.getString(cratePath+"settings.display-name","&e"+id);
+            String playerMessage=c.getString(messageBase+"player.message","&aHas abierto %crate%&a.");
+            if(c.getBoolean(messageBase+"player.enabled",false)&&!playerMessage.isEmpty()){
+                p.sendMessage(plugin.color(playerMessage.replace("%crate%",crateName).replace("%player%",p.getName())));
+            }
+            String globalMessage=c.getString(messageBase+"global.message","&e%player% &7ha abierto %crate%&7.");
+            if(c.getBoolean(messageBase+"global.enabled",false)&&!globalMessage.isEmpty()){
+                String rendered=plugin.color(globalMessage.replace("%crate%",crateName).replace("%player%",p.getName()));
+                for(Player online:Bukkit.getOnlinePlayers())online.sendMessage(rendered);
+            }
+            if(c.getBoolean(messageBase+"reward.enabled",true)){
+                String rewardMessage=c.getString(messageBase+"reward.message","&e¡Te ha tocado &f%reward%&e!");
+                if(!rewardMessage.isEmpty()){
+                    String rewardName=getRewardName(prize);
+                    String rendered=rewardMessage.replace("%crate%",crateName).replace("%player%",p.getName()).replace("%reward%",rewardName);
+                    p.sendMessage(plugin.color(rendered));
+                }
+            }
+        }
         p.updateInventory();
     }
 }

@@ -20,6 +20,7 @@ public class CrateMenu {
     public static final String PREVIEW_PREFIX="§8Premios disponibles §7» §e";
     public static final String CRATE_BLOCK_PREFIX="§8Bloque crate §7» §e", KEY_ITEM_PREFIX="§8Objeto llave §7» §e";
     public static final String HOLOGRAM_PREFIX="§8Holograma crate §7» §e";
+    public static final String MESSAGES_PREFIX="§8Mensajes crate §7» §e";
     public CrateMenu(BetterCrates plugin){this.plugin=plugin;}
 
     private ItemStack item(Material material,String name,String... lore){
@@ -58,6 +59,7 @@ public class CrateMenu {
         inv.setItem(17,item(Material.CHEST,"&6Editar recompensas","&7Configura los premios y sus probabilidades","&eClick para abrir"));
         inv.setItem(18,item(Material.ENCHANTED_BOOK,"&dBrillo encantado","&7"+(c.getBoolean("crates."+id+".block.glint",false)?"&aActivado":"&cDesactivado")));
         inv.setItem(19,item(Material.NAME_TAG,"&bEditar holograma","&7Estado: "+(c.getBoolean("crates."+id+".hologram.enabled",true)?"&aActivado":"&cDesactivado"),"&eConfigura las 3 líneas sobre la crate"));
+        inv.setItem(20,item(Material.PAPER,"&bMensajes de apertura","&7Personaliza mensajes privados y globales"));
         inv.setItem(22,item(Material.ARROW,"&cVolver")); fill(inv); p.openInventory(inv);
     }
     public void openHologramEditor(Player p,String id){
@@ -73,6 +75,21 @@ public class CrateMenu {
         inv.setItem(13,item(Material.PAPER,"&eLínea 2","&7Actual: "+lines.get(1),"&eClick para editar"));
         inv.setItem(14,item(Material.PAPER,"&eLínea 3","&7Actual: "+lines.get(2),"&eClick para editar"));
         inv.setItem(16,item(Material.BOOK,"&bRestaurar valores por defecto","&7"+crateName,"&7&fRight-Click to open!","&7&fLeft-Click to Preview!"));
+        inv.setItem(22,item(Material.ARROW,"&cVolver"));
+        fill(inv);p.openInventory(inv);
+    }
+    public void openMessagesEditor(Player p,String id){
+        YamlConfiguration c=plugin.getCrateManager().getConfiguration();
+        String base="crates."+id+".messages.";
+        if(!plugin.getCrateManager().crateExists(id)){openCrates(p);return;}
+        Inventory inv=Bukkit.createInventory(null,27,MESSAGES_PREFIX+id);
+        inv.setItem(10,item(Material.REDSTONE_TORCH_ON,"&aTodos los mensajes","&7Estado: "+(c.getBoolean(base+"enabled",true)?"&aActivados":"&cDesactivados"),"&7Desactiva esto para silenciar todos"));
+        inv.setItem(12,item(Material.NAME_TAG,"&eMensaje privado al abrir","&7Estado: "+(c.getBoolean(base+"player.enabled",false)?"&aActivado":"&cDesactivado"),"&7Actual: "+c.getString(base+"player.message","")));
+        inv.setItem(13,item(Material.PAPER,"&eEditar mensaje privado","&7Click para escribir el mensaje"));
+        inv.setItem(14,item(Material.BOOK,"&6Mensaje global al abrir","&7Estado: "+(c.getBoolean(base+"global.enabled",false)?"&aActivado":"&cDesactivado"),"&7Actual: "+c.getString(base+"global.message","")));
+        inv.setItem(15,item(Material.PAPER,"&6Editar mensaje global","&7Click para escribir el mensaje"));
+        inv.setItem(16,item(Material.EMERALD,"&bMensaje de recompensa","&7Estado: "+(c.getBoolean(base+"reward.enabled",true)?"&aActivado":"&cDesactivado"),"&7Actual: "+c.getString(base+"reward.message","")));
+        inv.setItem(17,item(Material.PAPER,"&bEditar mensaje de recompensa","&7Click para escribir el mensaje"));
         inv.setItem(22,item(Material.ARROW,"&cVolver"));
         fill(inv);p.openInventory(inv);
     }
@@ -103,33 +120,45 @@ public class CrateMenu {
         inv.setItem(15,item(Material.EMERALD,"&aGuardar objeto","&7Guarda el material seleccionado"));
         inv.setItem(22,item(Material.ARROW,"&cVolver")); fill(inv); p.openInventory(inv);
     }
+    public static int[] contentSlots(){
+        return new int[]{10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43};
+    }
+    public static int contentIndex(int slot){
+        int[] slots=contentSlots();
+        for(int i=0;i<slots.length;i++)if(slots[i]==slot)return i;
+        return -1;
+    }
+    private void decorateSides(Inventory inv){
+        ItemStack pane=new ItemStack(Material.STAINED_GLASS_PANE,1,(short)7);
+        ItemMeta meta=pane.getItemMeta();meta.setDisplayName(plugin.color("&8 "));pane.setItemMeta(meta);
+        int[] sides={9,18,27,36,17,26,35,44};
+        for(int slot:sides)inv.setItem(slot,pane);
+    }
     public void openRewards(Player p,String id,int page){
         YamlConfiguration c=plugin.getCrateManager().getConfiguration();
         if(!plugin.getCrateManager().crateExists(id)){openCrates(p);return;}
         Inventory inv=Bukkit.createInventory(null,54,REWARDS_PREFIX+id+":"+page);
         List<String> rewards=new ArrayList<String>();
-        if(c.isConfigurationSection("crates."+id+".rewards")) rewards.addAll(c.getConfigurationSection("crates."+id+".rewards").getKeys(false));
+        if(c.isConfigurationSection("crates."+id+".rewards"))rewards.addAll(c.getConfigurationSection("crates."+id+".rewards").getKeys(false));
         java.util.Collections.sort(rewards);
-        int start=page*45;
-        for(int i=0;i<45&&start+i<rewards.size();i++){
-            String rewardId=rewards.get(start+i), path="crates."+id+".rewards."+rewardId;
+        int[] slots=contentSlots();
+        int start=page*slots.length;
+        for(int i=0;i<slots.length&&start+i<rewards.size();i++){
+            String rewardId=rewards.get(start+i),path="crates."+id+".rewards."+rewardId;
             ItemStack reward=c.getItemStack(path+".item");
             if(reward==null||reward.getType()==Material.AIR)continue;
-            ItemStack display=reward.clone();
-            ItemMeta meta=display.getItemMeta();
+            ItemStack display=reward.clone();ItemMeta meta=display.getItemMeta();
             List<String> lore=meta.hasLore()?new ArrayList<String>(meta.getLore()):new ArrayList<String>();
             lore.add(plugin.color("&8ID: &7"+rewardId));
             lore.add(plugin.color("&eProbabilidad: &f"+c.getDouble(path+".chance",100.0)+"%"));
             lore.add(plugin.color("&7Click izquierdo: cambiar probabilidad"));
             lore.add(plugin.color("&7Click derecho: eliminar premio"));
-            meta.setLore(lore); display.setItemMeta(meta);
-            inv.setItem(i,display);
+            meta.setLore(lore);display.setItemMeta(meta);inv.setItem(slots[i],display);
         }
-        ItemStack pane=item(Material.STAINED_GLASS_PANE,"&8 ");
-        for(int i=45;i<54;i++)inv.setItem(i,pane);
+        decorateSides(inv);
         inv.setItem(45,item(Material.ARROW,"&ePágina anterior"));
-        inv.setItem(47,item(Material.BOOK,"&6Editor de recompensas","&7Arrastra un objeto de tu inventario","&7a un espacio vacío para agregarlo"));
-        inv.setItem(49,item(Material.BARRIER,"&cVolver a la crate"));
+        inv.setItem(47,item(Material.BOOK,"&6Editor de recompensas","&7Arrastra un objeto de tu inventario","&7a un espacio libre del centro"));
+        inv.setItem(49,item(Material.ARROW,"&cEscape","&7Volver a la configuración de la crate"));
         inv.setItem(51,item(Material.PAPER,"&ePágina &f"+(page+1),"&7Premios: &f"+rewards.size()));
         inv.setItem(53,item(Material.ARROW,"&ePágina siguiente"));
         p.openInventory(inv);
@@ -145,26 +174,19 @@ public class CrateMenu {
         java.util.Collections.sort(rewards);
         double total=0.0;
         for(String rewardId:rewards){double chance=c.getDouble(base+rewardId+".chance",100.0);ItemStack configured=c.getItemStack(base+rewardId+".item");if(configured!=null&&configured.getType()!=Material.AIR&&chance>0&&!Double.isNaN(chance)&&!Double.isInfinite(chance))total+=chance;}
-        int start=page*45;
-        int shown=0;
-        for(int i=0;i<45&&start+i<rewards.size();i++){
-            String rewardId=rewards.get(start+i),path=base+rewardId;
-            ItemStack reward=c.getItemStack(path+".item");
+        int[] slots=contentSlots();int start=page*slots.length;int shown=0;
+        for(int i=0;i<slots.length&&start+i<rewards.size();i++){
+            String rewardId=rewards.get(start+i),path=base+rewardId;ItemStack reward=c.getItemStack(path+".item");
             if(reward==null||reward.getType()==Material.AIR)continue;
-            ItemStack display=reward.clone();
-            ItemMeta meta=display.getItemMeta();
+            ItemStack display=reward.clone();ItemMeta meta=display.getItemMeta();
             List<String> lore=meta.hasLore()?new ArrayList<String>(meta.getLore()):new ArrayList<String>();
-            double weight=c.getDouble(path+".chance",100.0);
-            double actual=total>0&&weight>0?(weight/total)*100.0:0.0;
-            lore.add(plugin.color("&8 "));
-            lore.add(plugin.color("&eProbabilidad aproximada: &f"+String.format(java.util.Locale.US,"%.2f",actual)+"%"));
-            meta.setLore(lore);display.setItemMeta(meta);
-            inv.setItem(i,display);shown++;
+            double weight=c.getDouble(path+".chance",100.0);double actual=total>0&&weight>0?(weight/total)*100.0:0.0;
+            lore.add(plugin.color("&8 "));lore.add(plugin.color("&eProbabilidad aproximada: &f"+String.format(java.util.Locale.US,"%.2f",actual)+"%"));
+            meta.setLore(lore);display.setItemMeta(meta);inv.setItem(slots[i],display);shown++;
         }
-        ItemStack pane=item(Material.STAINED_GLASS_PANE,"&8 ");
-        for(int i=45;i<54;i++)inv.setItem(i,pane);
+        decorateSides(inv);
         inv.setItem(45,item(Material.ARROW,"&ePágina anterior"));
-        inv.setItem(49,item(Material.BARRIER,"&cCerrar"));
+        inv.setItem(49,item(Material.ARROW,"&cEscape","&7Cerrar vista previa"));
         inv.setItem(51,item(Material.PAPER,"&6Premios de &e"+id,"&7Objetos disponibles: &f"+rewards.size()));
         inv.setItem(53,item(Material.ARROW,"&ePágina siguiente"));
         if(shown==0)inv.setItem(22,item(Material.BARRIER,"&cEsta crate no tiene premios configurados"));

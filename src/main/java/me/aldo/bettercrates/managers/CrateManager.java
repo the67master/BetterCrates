@@ -32,6 +32,14 @@ public class CrateManager {
             String hologram = "crates." + id + ".hologram.";
             if (!configuration.contains(hologram + "enabled")) configuration.set(hologram + "enabled", true);
             if (!configuration.isList(hologram + "lines")) configuration.set(hologram + "lines", Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to Preview!"));
+            String messages = "crates." + id + ".messages.";
+            if (!configuration.contains(messages + "enabled")) configuration.set(messages + "enabled", true);
+            if (!configuration.contains(messages + "player.enabled")) configuration.set(messages + "player.enabled", false);
+            if (!configuration.contains(messages + "player.message")) configuration.set(messages + "player.message", "&aHas abierto %crate%&a.");
+            if (!configuration.contains(messages + "global.enabled")) configuration.set(messages + "global.enabled", false);
+            if (!configuration.contains(messages + "global.message")) configuration.set(messages + "global.message", "&e%player% &7ha abierto %crate%&7.");
+            if (!configuration.contains(messages + "reward.enabled")) configuration.set(messages + "reward.enabled", true);
+            if (!configuration.contains(messages + "reward.message")) configuration.set(messages + "reward.message", "&e¡Te ha tocado &f%reward%&e!");
         }
         save();
     }
@@ -55,6 +63,13 @@ public class CrateManager {
         configuration.set(p + ".block.glint", false);
         configuration.set(p + ".hologram.enabled", true);
         configuration.set(p + ".hologram.lines", Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to Preview!"));
+        configuration.set(p + ".messages.enabled", true);
+        configuration.set(p + ".messages.player.enabled", false);
+        configuration.set(p + ".messages.player.message", "&aHas abierto %crate%&a.");
+        configuration.set(p + ".messages.global.enabled", false);
+        configuration.set(p + ".messages.global.message", "&e%player% &7ha abierto %crate%&7.");
+        configuration.set(p + ".messages.reward.enabled", true);
+        configuration.set(p + ".messages.reward.message", "&e¡Te ha tocado &f%reward%&e!");
         configuration.set(p + ".placed", new ArrayList<String>());
         configuration.createSection(p + ".rewards");
         if (!keyExists(id)) createKey(id);
