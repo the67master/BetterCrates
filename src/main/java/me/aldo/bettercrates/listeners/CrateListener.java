@@ -111,6 +111,7 @@ public class CrateListener implements Listener {
                         if(rewardId==null){int n=1;while(c.isConfigurationSection(base+"reward-"+n))n++;rewardId="reward-"+n;}
                         c.set(base+rewardId+".item",old.clone());
                         if(!c.contains(base+rewardId+".chance"))c.set(base+rewardId+".chance",100.0);
+                        e.setCursor(new ItemStack(Material.AIR));
                         plugin.getCrateManager().save();plugin.getCrateMenu().openRewards((Player)e.getWhoClicked(),crateId,page);
                     }
                 }
