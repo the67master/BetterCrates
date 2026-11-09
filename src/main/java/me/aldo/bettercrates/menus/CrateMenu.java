@@ -183,7 +183,7 @@ public class CrateMenu {
             if(reward==null||reward.getType()==Material.AIR)continue;
             ItemStack display=reward.clone();ItemMeta meta=display.getItemMeta();
             List<String> lore=meta.hasLore()?new ArrayList<String>(meta.getLore()):new ArrayList<String>();
-            double weight=c.getDouble(path+".chance",100.0);double actual=total>0&&weight>0?(weight/total)*100.0:0.0;
+            double weight=c.getDouble(path+".chance",100.0);double actual=total>0&&weight>0?(weight/Math.max(100.0,total))*100.0:0.0;
             lore.add(plugin.color("&8 "));lore.add(plugin.color("&eApproximate chance: &f"+String.format(java.util.Locale.US,"%.2f",actual)+"%"));
             meta.setLore(lore);display.setItemMeta(meta);inv.setItem(slots[i],display);shown++;
         }

@@ -314,7 +314,7 @@ public class CrateListener implements Listener {
             p.sendMessage(plugin.color("&cThis crate has no rewards with a valid chance."));
             return;
         }
-        double roll=Math.random()*total;
+        double roll=Math.random()*Math.max(100.0,total);
         String selected=null;
         for(String rewardId:rewardIds){
             ItemStack reward=c.getItemStack(rewardsPath+rewardId+".item");
@@ -322,13 +322,6 @@ public class CrateListener implements Listener {
             if(reward==null||reward.getType()==Material.AIR||chance<=0||Double.isNaN(chance)||Double.isInfinite(chance))continue;
             roll-=chance;
             if(roll<0){selected=rewardId;break;}
-        }
-        if(selected==null){
-            for(String rewardId:rewardIds){
-                ItemStack reward=c.getItemStack(rewardsPath+rewardId+".item");
-                double chance=c.getDouble(rewardsPath+rewardId+".chance",100.0);
-                if(reward!=null&&reward.getType()!=Material.AIR&&chance>0&&!Double.isNaN(chance)&&!Double.isInfinite(chance)){selected=rewardId;break;}
-            }
         }
         if(selected==null)return;
         ItemStack key=contents[keySlot];
