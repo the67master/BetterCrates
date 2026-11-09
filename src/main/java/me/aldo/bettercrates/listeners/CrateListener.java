@@ -245,7 +245,7 @@ public class CrateListener implements Listener {
     private void saveOpen(Player p,boolean key,String id){plugin.getCrateManager().save();if(key)plugin.getCrateMenu().openKeySettings(p,id);else plugin.getCrateMenu().openCrateSettings(p,id);}
     private void mMain(Player p){plugin.getCrateMenu().openMain(p);}
     private String loc(Block b){return b.getWorld().getName()+";"+b.getX()+";"+b.getY()+";"+b.getZ();}
-    @EventHandler public void onPlace(BlockPlaceEvent e){String id=plugin.getCrateManager().getTag(e.getItemInHand(),"BC_CRATE");if(id!=null&&plugin.getCrateManager().crateExists(id)){plugin.getCrateManager().addPlaced(id,loc(e.getBlockPlaced()));plugin.getHologramManager().refreshAt(id,e.getBlockPlaced().getLocation());e.getPlayer().sendMessage(plugin.color("&aCrate &e"+id+" &acolocada."));}}
+    @EventHandler public void onPlace(BlockPlaceEvent e){String id=plugin.getCrateManager().getTag(e.getItemInHand(),"BC_CRATE");if(id!=null&&plugin.getCrateManager().crateExists(id)){plugin.getCrateManager().addPlaced(id,loc(e.getBlockPlaced()));plugin.getHologramManager().refreshAt(id,e.getBlockPlaced().getLocation());e.getPlayer().sendMessage(plugin.color("&aCrate &e"+id+" &aplaced."));}}
     @EventHandler public void onBreak(BlockBreakEvent e){String id=plugin.getCrateManager().getPlacedCrate(loc(e.getBlock()));if(id!=null){plugin.getHologramManager().removeAt(e.getBlock().getLocation());plugin.getCrateManager().removePlaced(id,loc(e.getBlock()));e.setDropItems(false);e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(),plugin.getCrateManager().createCrateItem(id,1));}}
     @EventHandler public void onChunkLoad(ChunkLoadEvent e){plugin.getHologramManager().handleChunkLoad(e.getChunk());}
 
@@ -339,17 +339,17 @@ public class CrateListener implements Listener {
         String messageBase=cratePath+"messages.";
         if(c.getBoolean(messageBase+"enabled",true)){
             String crateName=c.getString(cratePath+"settings.display-name","&e"+id);
-            String playerMessage=c.getString(messageBase+"player.message","&aHas abierto %crate%&a.");
+            String playerMessage=c.getString(messageBase+"player.message","&aYou opened %crate%&a.");
             if(c.getBoolean(messageBase+"player.enabled",false)&&!playerMessage.isEmpty()){
                 p.sendMessage(plugin.color(playerMessage.replace("%crate%",crateName).replace("%player%",p.getName())));
             }
-            String globalMessage=c.getString(messageBase+"global.message","&e%player% &7ha abierto %crate%&7.");
+            String globalMessage=c.getString(messageBase+"global.message","&e%player% &7opened %crate%&7.");
             if(c.getBoolean(messageBase+"global.enabled",false)&&!globalMessage.isEmpty()){
                 String rendered=plugin.color(globalMessage.replace("%crate%",crateName).replace("%player%",p.getName()));
                 for(Player online:Bukkit.getOnlinePlayers())online.sendMessage(rendered);
             }
             if(c.getBoolean(messageBase+"reward.enabled",true)){
-                String rewardMessage=c.getString(messageBase+"reward.message","&e¡Te ha tocado &f%reward%&e!");
+                String rewardMessage=c.getString(messageBase+"reward.message","&eYou won &f%reward%&e!");
                 if(!rewardMessage.isEmpty()){
                     String rewardName=getRewardName(prize);
                     String rendered=rewardMessage.replace("%crate%",crateName).replace("%player%",p.getName()).replace("%reward%",rewardName);

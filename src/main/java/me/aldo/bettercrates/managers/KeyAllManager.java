@@ -36,7 +36,7 @@ public class KeyAllManager {
     }
 
     public void stop() { if (taskId != -1) { Bukkit.getScheduler().cancelTask(taskId); taskId = -1; } }
-    public void reload() { stop(); start(); }
+    public void reload() { stop(); if (plugin.getConfig().getBoolean("keyall.enabled", true)) { long interval = Math.max(1L, plugin.getConfig().getLong("keyall.interval-seconds", 86400L)); plugin.getConfig().set("keyall.next-run", System.currentTimeMillis() + interval * 1000L); plugin.saveConfig(); } start(); }
 
     public void setInterval(long seconds) {
         seconds = Math.max(1L, seconds);
@@ -104,7 +104,8 @@ public class KeyAllManager {
         if (total <= 0) return ids.isEmpty() ? null : ids.get(random.nextInt(ids.size()));
         double roll = random.nextDouble() * total;
         for (String id : ids) { double w = plugin.getConfig().getDouble("keyall.keys." + id, 1.0); if (w <= 0 || Double.isNaN(w) || Double.isInfinite(w)) continue; roll -= w; if (roll < 0) return id; }
-        return ids.get(ids.size() - 1);
+        for (String id : ids) { double weight = plugin.getConfig().getDouble("keyall.keys." + id, 1.0); if (weight > 0 && !Double.isNaN(weight) && !Double.isInfinite(weight)) return id; }
+        return ids.isEmpty() ? null : ids.get(0);
     }
 
     private void distribute() {

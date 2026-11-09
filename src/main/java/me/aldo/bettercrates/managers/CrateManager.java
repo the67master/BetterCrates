@@ -47,7 +47,7 @@ public class CrateManager {
     public void save() {
         if (configuration == null) return;
         try { configuration.save(file); }
-        catch (IOException exception) { plugin.getLogger().severe("No se pudo guardar crates.yml: " + exception.getMessage()); }
+        catch (IOException exception) { plugin.getLogger().severe("Could not save crates.yml: " + exception.getMessage()); }
     }
 
     public boolean createCrate(String id) {

@@ -25,9 +25,9 @@ public class CrateCommand implements CommandExecutor {
             int amount=1;if(args.length>=4)try{amount=Math.max(1,Math.min(64,Integer.parseInt(args[3])));}catch(NumberFormatException ex){sender.sendMessage(plugin.color("&cInvalid amount."));return true;}
             boolean key=args[0].equalsIgnoreCase("givekey");
             ItemStack item=key?plugin.getCrateManager().createKeyItem(args[2],amount):plugin.getCrateManager().createCrateItem(args[2],amount);
-            if(item==null){sender.sendMessage(plugin.color("&cUnknown "+(key?"llave.":"crate.")));return true;}
+            if(item==null){sender.sendMessage(plugin.color("&cUnknown "+(key?"key.":"crate.")));return true;}
             target.getInventory().addItem(item);
-            sender.sendMessage(plugin.color("&aEntregaste &e"+amount+" &a"+args[2]+" a &e"+target.getName()+"&a."));
+            sender.sendMessage(plugin.color("&aGave &e"+amount+" &a"+args[2]+" to &e"+target.getName()+"&a."));
             return true;
         }
         plugin.sendMessage(sender,"unknown-command");return true;
