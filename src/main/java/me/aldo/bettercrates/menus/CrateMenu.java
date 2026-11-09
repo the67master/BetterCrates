@@ -90,7 +90,7 @@ public class CrateMenu {
         inv.setItem(15,item(Material.PAPER,"&6Editar mensaje global","&7Click para escribir el mensaje"));
         inv.setItem(16,item(Material.EMERALD,"&bMensaje de recompensa","&7Estado: "+(c.getBoolean(base+"reward.enabled",true)?"&aActivado":"&cDesactivado"),"&7Actual: "+c.getString(base+"reward.message","")));
         inv.setItem(17,item(Material.PAPER,"&bEditar mensaje de recompensa","&7Click para escribir el mensaje"));
-        inv.setItem(22,item(Material.ARROW,"&cVolver"));
+        inv.setItem(40,item(Material.ARROW,"&cVolver"));
         fill(inv);p.openInventory(inv);
     }
     public void openKeySettings(Player p,String id){
