@@ -83,7 +83,7 @@ public class CrateMenu {
         String base="crates."+id+".messages.";
         if(!plugin.getCrateManager().crateExists(id)){openCrates(p);return;}
         Inventory inv=Bukkit.createInventory(null,45,MESSAGES_PREFIX+id);
-        inv.setItem(10,item(Material.REDSTONE_TORCH_ON,"&aAll Messages","&7Status: "+(c.getBoolean(base+"enabled",true)?"&aEnableds":"&cDisableds"),"&7Disable this to silence all messages"));
+        inv.setItem(10,item(Material.REDSTONE_TORCH_ON,"&aAll Messages","&7Status: "+(c.getBoolean(base+"enabled",true)?"&aEnabled":"&cDisabled"),"&7Disable this to silence all messages"));
         inv.setItem(12,item(Material.NAME_TAG,"&ePrivate message on open","&7Status: "+(c.getBoolean(base+"player.enabled",false)?"&aEnabled":"&cDisabled"),"&7Current: "+c.getString(base+"player.message","")));
         inv.setItem(13,item(Material.PAPER,"&eEdit private message","&7Click to write the message"));
         inv.setItem(14,item(Material.BOOK,"&6Global message on open","&7Status: "+(c.getBoolean(base+"global.enabled",false)?"&aEnabled":"&cDisabled"),"&7Current: "+c.getString(base+"global.message","")));
@@ -99,7 +99,7 @@ public class CrateMenu {
         Inventory inv=Bukkit.createInventory(null,45,KEY_PREFIX+id);
         inv.setItem(10,item(Material.NAME_TAG,"&eName and Color","&7Current: "+c.getString(path+"display-name","&6"+id),"&eClick and type a colored name (&)"));
         inv.setItem(12,item(Material.CHEST,"&bEdit Key Item","&7Material: &f"+c.getString(path+"material","TRIPWIRE_HOOK"),"&eClick to open editor"));
-        inv.setItem(14,item(Material.IRON_DOOR,"&dPermission to use key","&7Required: "+(c.getBoolean(path+"permission.enabled",false)?"&aSí":"&cNo")));
+        inv.setItem(14,item(Material.IRON_DOOR,"&dPermission to use key","&7Required: "+(c.getBoolean(path+"permission.enabled",false)?"&aYes":"&cNo")));
         inv.setItem(15,item(Material.PAPER,"&ePermission Node","&7"+c.getString(path+"permission.node","")));
         inv.setItem(16,item(Material.ENCHANTED_BOOK,"&dEnchantment Glint","&7"+(c.getBoolean(path+"glint",false)?"&aEnabled":"&cDisabled")));
         inv.setItem(40,item(Material.ARROW,"&cBack")); fill(inv); p.openInventory(inv);
@@ -189,7 +189,7 @@ public class CrateMenu {
         }
         decorateSides(inv);
         inv.setItem(45,item(Material.ARROW,"&ePrevious Page"));
-        inv.setItem(49,item(Material.ARROW,"&cExit","&7Cerrar vista previa"));
+        inv.setItem(49,item(Material.ARROW,"&cExit","&7Close preview"));
         inv.setItem(51,item(Material.PAPER,"&6Rewards for &e"+id,"&7Available items: &f"+rewards.size()));
         inv.setItem(53,item(Material.ARROW,"&eNext Page"));
         if(shown==0)inv.setItem(22,item(Material.BARRIER,"&cThis crate has no rewards configured"));

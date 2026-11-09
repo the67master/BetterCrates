@@ -6,13 +6,13 @@ description: Customizable crates and KeyAll plugin for Spigot 1.12.2
 softdepend: [PlaceholderAPI]
 commands:
   bc:
-    description: Panel y administración de BetterCrates
+    description: BetterCrates administration
     usage: /bc
     aliases: [bettercrates]
 permissions:
   bettercrates.admin:
-    description: Permite administrar BetterCrates
+    description: Allows administration of BetterCrates
     default: op
   bettercrates.use:
-    description: Permiso base para usar BetterCrates
+    description: Base permission to use BetterCrates
     default: true

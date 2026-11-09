@@ -7,7 +7,7 @@ settings:
 # General GUI and item customization.
 customization:
   gui:
-      filler-material: STAINED_GLASS_PANE
+    filler-material: STAINED_GLASS_PANE
     filler-data: 7
     filler-name: "&8 "
   crate:
