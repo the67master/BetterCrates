@@ -1,10 +1,9 @@
 settings:
-  # Default language: en (English) or es (Spanish).
+  # Supported languages: en (English) and es (Spanish).
   language: en
-  debug: false
   prefix: "&8[&6BetterCrates&8] "
 
-# General GUI and item customization.
+# Default settings applied when creating new crates and keys.
 customization:
   gui:
     filler-material: STAINED_GLASS_PANE
@@ -12,16 +11,27 @@ customization:
     filler-name: "&8 "
   crate:
     default-block: CHEST
+    default-display-name: "&e%id%"
+    default-color: "&e"
     default-glint: false
   key:
     default-material: TRIPWIRE_HOOK
+    default-display-name: "&6Key %id%"
+    default-color: "&6"
     default-glint: false
+    default-lore:
+      - "&7A BetterCrates key"
+      - "&e%id%"
   hologram:
     enabled-by-default: true
     default-lines:
       - "%crate_name%"
       - "&7Right-Click to open!"
       - "&7Left-Click to preview!"
+  messages:
+    player: "&aYou opened %crate%&a."
+    global: "&e%player% &7opened %crate%&7."
+    reward: "&eYou won &f%reward%&e!"
 
 # Global KeyAll event.
 keyall:
@@ -29,7 +39,7 @@ keyall:
   # Initial and recurring interval. Supports d, h, m, s (example: 1d6h).
   interval-seconds: 86400
   next-run: 0
-  # random = one random key, all = every selected key, weighted = one weighted key.
+  # random = one uniformly selected key, all = every selected key, weighted = one weighted key.
   distribution: random
   # Empty means every registered key is eligible.
   # Weighted mode uses equal weights when this section is empty.

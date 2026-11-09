@@ -48,7 +48,24 @@ public class CrateCommand implements CommandExecutor {
         if(sub.equals("mode")&&args.length>=3){String mode=args[2].toLowerCase(java.util.Locale.ENGLISH);if(!mode.equals("random")&&!mode.equals("all")&&!mode.equals("weighted")){sender.sendMessage(text("&cModes: random, all, weighted."));return;}config.set("keyall.distribution",mode);plugin.saveConfig();sender.sendMessage(text("&aKeyAll distribution mode: &e"+mode));return;}
         if(sub.equals("add")&&args.length>=3){String id=args[2];if(!plugin.getCrateManager().keyExists(id)){sender.sendMessage(text("&cUnknown key: &e"+id));return;}double weight=1.0;if(args.length>=4)try{weight=Double.parseDouble(args[3]);}catch(NumberFormatException ex){weight=-1;}if(weight<=0||Double.isNaN(weight)||Double.isInfinite(weight)){sender.sendMessage(text("&cWeight must be a positive number."));return;}config.set("keyall.keys."+id,weight);plugin.saveConfig();sender.sendMessage(text("&aAdded &e"+id+"&a to the KeyAll pool with weight &e"+weight+"&a."));return;}
         if(sub.equals("remove")&&args.length>=3){config.set("keyall.keys."+args[2],null);plugin.saveConfig();sender.sendMessage(text("&aRemoved &e"+args[2]+" &afrom the KeyAll pool."));return;}
-        if(sub.equals("list")){java.util.Set<String> ids=config.getConfigurationSection("keyall.keys")==null?java.util.Collections.<String>emptySet():config.getConfigurationSection("keyall.keys").getKeys(false);sender.sendMessage(text("&6KeyAll keys (&e"+config.getString("keyall.distribution","random")+"&6):"));if(ids.isEmpty())sender.sendMessage(text("&7No keys configured. Random mode uses all registered keys."));for(String id:ids)sender.sendMessage(text("&8- &e"+id+" &7(weight: "+config.getDouble("keyall.keys."+id)+")"));return;}
+        if(sub.equals("list")){
+            String mode=config.getString("keyall.distribution","random").toLowerCase(java.util.Locale.ENGLISH);
+            org.bukkit.configuration.ConfigurationSection section=config.getConfigurationSection("keyall.keys");
+            java.util.List<String> ids=new java.util.ArrayList<String>();
+            if(section==null||section.getKeys(false).isEmpty())ids.addAll(plugin.getCrateManager().getKeyIds());
+            else for(String id:section.getKeys(false))if(plugin.getCrateManager().keyExists(id))ids.add(id);
+            java.util.Collections.sort(ids);
+            sender.sendMessage(text("&6KeyAll keys (&e"+mode+"&6):"));
+            if(ids.isEmpty()){sender.sendMessage(text("&7No valid keys are available."));return;}
+            double totalWeight=0.0;
+            if(mode.equals("weighted"))for(String id:ids){double weight=config.getDouble("keyall.keys."+id,1.0);if(weight>0&&!Double.isNaN(weight)&&!Double.isInfinite(weight))totalWeight+=weight;}
+            for(String id:ids){
+                if(mode.equals("all"))sender.sendMessage(text("&8- &e"+id+" &7(guaranteed)"));
+                else if(mode.equals("weighted")){double weight=config.getDouble("keyall.keys."+id,1.0);double chance=totalWeight>0&&weight>0?weight/totalWeight*100.0:0.0;sender.sendMessage(text("&8- &e"+id+" &7("+String.format(java.util.Locale.US,"%.2f",chance)+"%)"));}
+                else {double chance=100.0/ids.size();sender.sendMessage(text("&8- &e"+id+" &7("+String.format(java.util.Locale.US,"%.2f",chance)+"%)"));}
+            }
+            return;
+        }
         if(sub.equals("time")){sender.sendMessage(text("&6Next KeyAll in: &e"+plugin.getKeyAllManager().getFormattedRemaining()));return;}
         sender.sendMessage(text("&cUnknown KeyAll subcommand. Use &e/bc keyall&c."));
     }

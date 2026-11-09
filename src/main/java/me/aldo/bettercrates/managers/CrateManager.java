@@ -35,11 +35,11 @@ public class CrateManager {
             String messages = "crates." + id + ".messages.";
             if (!configuration.contains(messages + "enabled")) configuration.set(messages + "enabled", true);
             if (!configuration.contains(messages + "player.enabled")) configuration.set(messages + "player.enabled", false);
-            if (!configuration.contains(messages + "player.message")) configuration.set(messages + "player.message", "&aYou opened %crate%&a.");
+            if (!configuration.contains(messages + "player.message")) configuration.set(messages + "player.message", plugin.getConfig().getString("customization.messages.player", "&aYou opened %crate%&a."));
             if (!configuration.contains(messages + "global.enabled")) configuration.set(messages + "global.enabled", false);
-            if (!configuration.contains(messages + "global.message")) configuration.set(messages + "global.message", "&e%player% &7opened %crate%&7.");
+            if (!configuration.contains(messages + "global.message")) configuration.set(messages + "global.message", plugin.getConfig().getString("customization.messages.global", "&e%player% &7opened %crate%&7."));
             if (!configuration.contains(messages + "reward.enabled")) configuration.set(messages + "reward.enabled", true);
-            if (!configuration.contains(messages + "reward.message")) configuration.set(messages + "reward.message", "&eYou won &f%reward%&e!");
+            if (!configuration.contains(messages + "reward.message")) configuration.set(messages + "reward.message", plugin.getConfig().getString("customization.messages.reward", "&eYou won &f%reward%&e!"));
         }
         save();
     }
@@ -53,8 +53,8 @@ public class CrateManager {
     public boolean createCrate(String id) {
         if (crateExists(id)) return false;
         String p = "crates." + id;
-        configuration.set(p + ".settings.display-name", "&e" + id);
-        configuration.set(p + ".settings.color", "&e");
+        configuration.set(p + ".settings.display-name", plugin.getConfig().getString("customization.crate.default-display-name", "&e%id%").replace("%id%", id));
+        configuration.set(p + ".settings.color", plugin.getConfig().getString("customization.crate.default-color", "&e"));
         configuration.set(p + ".settings.enabled", true);
         configuration.set(p + ".settings.permission.enabled", false);
         configuration.set(p + ".settings.permission.node", "bettercrates.crate." + id + ".open");
@@ -65,11 +65,11 @@ public class CrateManager {
         configuration.set(p + ".hologram.lines", plugin.getConfig().getStringList("customization.hologram.default-lines").isEmpty() ? Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to preview!") : plugin.getConfig().getStringList("customization.hologram.default-lines"));
         configuration.set(p + ".messages.enabled", true);
         configuration.set(p + ".messages.player.enabled", false);
-        configuration.set(p + ".messages.player.message", "&aYou opened %crate%&a.");
+        configuration.set(p + ".messages.player.message", plugin.getConfig().getString("customization.messages.player", "&aYou opened %crate%&a."));
         configuration.set(p + ".messages.global.enabled", false);
-        configuration.set(p + ".messages.global.message", "&e%player% &7opened %crate%&7.");
+        configuration.set(p + ".messages.global.message", plugin.getConfig().getString("customization.messages.global", "&e%player% &7opened %crate%&7."));
         configuration.set(p + ".messages.reward.enabled", true);
-        configuration.set(p + ".messages.reward.message", "&eYou won &f%reward%&e!");
+        configuration.set(p + ".messages.reward.message", plugin.getConfig().getString("customization.messages.reward", "&eYou won &f%reward%&e!"));
         configuration.set(p + ".placed", new ArrayList<String>());
         configuration.createSection(p + ".rewards");
         if (!keyExists(id)) createKey(id);
@@ -82,9 +82,13 @@ public class CrateManager {
         String p = "keys." + id;
         configuration.set(p + ".material", plugin.getConfig().getString("customization.key.default-material", "TRIPWIRE_HOOK"));
         configuration.set(p + ".amount", 1);
-        configuration.set(p + ".display-name", "&6Key " + id);
-        configuration.set(p + ".color", "&6");
-        configuration.set(p + ".lore", Arrays.asList("&7A BetterCrates key", "&e" + id));
+        configuration.set(p + ".display-name", plugin.getConfig().getString("customization.key.default-display-name", "&6Key %id%").replace("%id%", id));
+        configuration.set(p + ".color", plugin.getConfig().getString("customization.key.default-color", "&6"));
+        List<String> defaultLore = plugin.getConfig().getStringList("customization.key.default-lore");
+        if (defaultLore.isEmpty()) defaultLore = Arrays.asList("&7A BetterCrates key", "&e%id%");
+        List<String> keyLore = new ArrayList<String>();
+        for (String line : defaultLore) keyLore.add(line.replace("%id%", id));
+        configuration.set(p + ".lore", keyLore);
         configuration.set(p + ".glint", plugin.getConfig().getBoolean("customization.key.default-glint", false));
         configuration.set(p + ".permission.enabled", false);
         configuration.set(p + ".permission.node", "bettercrates.key." + id + ".use");
