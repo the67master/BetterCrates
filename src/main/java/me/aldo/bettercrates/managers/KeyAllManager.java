@@ -36,7 +36,7 @@ public class KeyAllManager {
     }
 
     public void stop() { if (taskId != -1) { Bukkit.getScheduler().cancelTask(taskId); taskId = -1; } }
-    public void reload() { stop(); if (plugin.getConfig().getBoolean("keyall.enabled", true)) { long interval = Math.max(1L, plugin.getConfig().getLong("keyall.interval-seconds", 86400L)); plugin.getConfig().set("keyall.next-run", System.currentTimeMillis() + interval * 1000L); plugin.saveConfig(); } start(); }
+    public void reload() { stop(); start(); }
 
     public void setInterval(long seconds) {
         seconds = Math.max(1L, seconds);
@@ -92,8 +92,11 @@ public class KeyAllManager {
     private List<String> getEligibleKeys() {
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("keyall.keys");
         List<String> ids = new ArrayList<String>();
-        if (section != null) for (String id : section.getKeys(false)) if (plugin.getCrateManager().keyExists(id)) ids.add(id);
-        if (ids.isEmpty()) ids.addAll(plugin.getCrateManager().getKeyIds());
+        if (section != null && !section.getKeys(false).isEmpty()) {
+            for (String id : section.getKeys(false)) if (plugin.getCrateManager().keyExists(id)) ids.add(id);
+        } else {
+            ids.addAll(plugin.getCrateManager().getKeyIds());
+        }
         Collections.sort(ids);
         return ids;
     }
@@ -126,7 +129,7 @@ public class KeyAllManager {
             }
         }
         String broadcast = plugin.getConfig().getString("keyall.broadcast", "&6&lKEYALL! &eEveryone has received their KeyAll reward.");
-        if (broadcast != null && !broadcast.isEmpty()) Bukkit.broadcastMessage(plugin.color(broadcast));
+        if (broadcast != null && !broadcast.isEmpty()) Bukkit.broadcastMessage(plugin.color(plugin.guiText(broadcast)));
         plugin.getLogger().info("KeyAll distributed keys using mode: " + mode);
     }
 }

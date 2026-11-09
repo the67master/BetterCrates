@@ -30,7 +30,8 @@ public class CrateListener implements Listener {
     private final Map<UUID,Pending> pending=new HashMap<UUID,Pending>();
     private final Map<UUID,String> selectedMaterial=new HashMap<UUID,String>();
     public CrateListener(BetterCrates plugin){this.plugin=plugin;}
-    private void prompt(Player p,InputType t,String id,String message){pending.put(p.getUniqueId(),new Pending(t,id));p.closeInventory();p.sendMessage(plugin.color("&6BetterCrates &8» &e"+plugin.guiText(message)+" &7(type cancel to exit)"));}
+    private String text(String value){return plugin.color(plugin.guiText(value));}
+    private void prompt(Player p,InputType t,String id,String message){pending.put(p.getUniqueId(),new Pending(t,id));p.closeInventory();p.sendMessage(text("&6BetterCrates &8» &e"+plugin.guiText(message)+" &7(type cancel to exit)"));}
     private boolean isMenu(String t){return t.equals(CrateMenu.MAIN)||t.equals(CrateMenu.CRATES)||t.equals(CrateMenu.KEYS)||t.startsWith(CrateMenu.CRATE_PREFIX)||t.startsWith(CrateMenu.KEY_PREFIX)||t.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||t.startsWith(CrateMenu.KEY_ITEM_PREFIX)||t.startsWith(CrateMenu.REWARDS_PREFIX)||t.startsWith(CrateMenu.PREVIEW_PREFIX)||t.startsWith(CrateMenu.HOLOGRAM_PREFIX)||t.startsWith(CrateMenu.MESSAGES_PREFIX);}
     @EventHandler public void onClick(InventoryClickEvent e){
         if(!(e.getWhoClicked() instanceof Player))return; String title=e.getView().getTitle(); if(!isMenu(title))return; e.setCancelled(true);
@@ -114,8 +115,8 @@ public class CrateListener implements Listener {
             boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);String id=title.substring((crate?CrateMenu.CRATE_BLOCK_PREFIX:CrateMenu.KEY_ITEM_PREFIX).length());
             if(s==22){selectedMaterial.remove(p.getUniqueId());if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
             else if(s==11)prompt(p,crate?InputType.CRATE_BLOCK_MATERIAL:InputType.KEY_MATERIAL,id,"Enter a Bukkit material name");
-            else if(s==13&&crate){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&cursor.getType().isBlock()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(plugin.color("&aSelected block: &e"+cursor.getType().name()));}else{selectedMaterial.put(p.getUniqueId(),"");e.getView().getTopInventory().setItem(13,null);p.sendMessage(plugin.color("&eBlock selection cleared. Choose a block or save to restore the chest."));}}else if(s==13&&!crate){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&cursor.getType().isItem()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(plugin.color("&aSelected: &e"+cursor.getType().name()));}}
-            else if(s==15){String mat=selectedMaterial.remove(p.getUniqueId());if(crate&&mat!=null&&mat.isEmpty()){c.set("crates."+id+".block.material","CHEST");plugin.getCrateManager().save();p.sendMessage(plugin.color("&cYou must assign a block. The crate block has been restored to CHEST."));m.openCrateBlockEditor(p,id);return;}if(mat==null)mat=c.getString(crate?"crates."+id+".block.material":"keys."+id+".material");c.set(crate?"crates."+id+".block.material":"keys."+id+".material",mat);plugin.getCrateManager().save();p.sendMessage(plugin.color("&aMaterial saved: &e"+mat));if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
+            else if(s==13&&crate){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&cursor.getType().isBlock()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(text("&aSelected block: &e"+cursor.getType().name()));}else{selectedMaterial.put(p.getUniqueId(),"");e.getView().getTopInventory().setItem(13,null);p.sendMessage(text("&eBlock selection cleared. Choose a block or save to restore the chest."));}}else if(s==13&&!crate){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&cursor.getType().isItem()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(text("&aSelected: &e"+cursor.getType().name()));}}
+            else if(s==15){String mat=selectedMaterial.remove(p.getUniqueId());if(crate&&mat!=null&&mat.isEmpty()){c.set("crates."+id+".block.material","CHEST");plugin.getCrateManager().save();p.sendMessage(text("&cYou must assign a block. The crate block has been restored to CHEST."));m.openCrateBlockEditor(p,id);return;}if(mat==null)mat=c.getString(crate?"crates."+id+".block.material":"keys."+id+".material");c.set(crate?"crates."+id+".block.material":"keys."+id+".material",mat);plugin.getCrateManager().save();p.sendMessage(text("&aMaterial saved: &e"+mat));if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
             return;
         }
         if(title.startsWith(CrateMenu.CRATE_PREFIX)){
@@ -170,20 +171,20 @@ public class CrateListener implements Listener {
             return;
         }
         if(!title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)&&!title.startsWith(CrateMenu.KEY_ITEM_PREFIX))return;
-        if(e.getRawSlots().contains(13)){e.setCancelled(true);if(e.getWhoClicked() instanceof Player){Player p=(Player)e.getWhoClicked();ItemStack old=e.getOldCursor();if(old!=null&&old.getType()!=Material.AIR){boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);if((crate&&old.getType().isBlock())||(!crate&&old.getType().isItem())){selectedMaterial.put(p.getUniqueId(),old.getType().name());p.sendMessage(plugin.color("&aSelected: &e"+old.getType().name()));}}}}
+        if(e.getRawSlots().contains(13)){e.setCancelled(true);if(e.getWhoClicked() instanceof Player){Player p=(Player)e.getWhoClicked();ItemStack old=e.getOldCursor();if(old!=null&&old.getType()!=Material.AIR){boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);if((crate&&old.getType().isBlock())||(!crate&&old.getType().isItem())){selectedMaterial.put(p.getUniqueId(),old.getType().name());p.sendMessage(text("&aSelected: &e"+old.getType().name()));}}}}
     }
     @EventHandler public void onChat(AsyncPlayerChatEvent e){
         final Player p=e.getPlayer();final Pending a=pending.remove(p.getUniqueId());if(a==null)return;e.setCancelled(true);final String value=e.getMessage().trim();
         Bukkit.getScheduler().runTask(plugin,new Runnable(){public void run(){
-            if(value.equalsIgnoreCase("cancel")||value.equalsIgnoreCase("cancelar")){p.sendMessage(plugin.color("&cCancelled."));mMain(p);return;}
+            if(value.equalsIgnoreCase("cancel")||value.equalsIgnoreCase("cancelar")){p.sendMessage(text("&cCancelled."));mMain(p);return;}
             YamlConfiguration c=plugin.getCrateManager().getConfiguration();
-            if((a.type==InputType.CREATE_CRATE||a.type==InputType.CREATE_KEY||a.type==InputType.CRATE_KEY)&&!value.matches("[A-Za-z0-9_.-]+")){p.sendMessage(plugin.color("&cInvalid ID."));mMain(p);return;}
+            if((a.type==InputType.CREATE_CRATE||a.type==InputType.CREATE_KEY||a.type==InputType.CRATE_KEY)&&!value.matches("[A-Za-z0-9_.-]+")){p.sendMessage(text("&cInvalid ID."));mMain(p);return;}
             switch(a.type){
-                case CREATE_CRATE: if(plugin.getCrateManager().createCrate(value))p.sendMessage(plugin.color("&aCrate created: &e"+value));else p.sendMessage(plugin.color("&cThat ID already exists."));mMain(p);break;
-                case CREATE_KEY: if(plugin.getCrateManager().createKey(value))p.sendMessage(plugin.color("&aKey created: &e"+value));else p.sendMessage(plugin.color("&cThat ID already exists."));mMain(p);break;
+                case CREATE_CRATE: if(plugin.getCrateManager().createCrate(value))p.sendMessage(text("&aCrate created: &e"+value));else p.sendMessage(text("&cThat ID already exists."));mMain(p);break;
+                case CREATE_KEY: if(plugin.getCrateManager().createKey(value))p.sendMessage(text("&aKey created: &e"+value));else p.sendMessage(text("&cThat ID already exists."));mMain(p);break;
                 case CRATE_NAME:c.set("crates."+a.id+".settings.display-name",value);plugin.getCrateManager().save();plugin.getHologramManager().refreshCrate(a.id);plugin.getCrateMenu().openCrateSettings(p,a.id);break;
                 case CRATE_PERMISSION:c.set("crates."+a.id+".settings.permission.node",value);saveOpen(p,false,a.id);break;
-                case CRATE_KEY:if(!plugin.getCrateManager().keyExists(value))p.sendMessage(plugin.color("&cThat key does not exist."));else c.set("crates."+a.id+".key-id",value);saveOpen(p,false,a.id);break;
+                case CRATE_KEY:if(!plugin.getCrateManager().keyExists(value))p.sendMessage(text("&cThat key does not exist."));else c.set("crates."+a.id+".key-id",value);saveOpen(p,false,a.id);break;
                 case KEY_NAME:c.set("keys."+a.id+".display-name",value);saveOpen(p,true,a.id);break;
                 case KEY_PERMISSION:c.set("keys."+a.id+".permission.node",value);saveOpen(p,true,a.id);break;
                 case CRATE_MESSAGE:{
@@ -214,11 +215,38 @@ public class CrateListener implements Listener {
                 case REWARD_CHANCE:{
                     String[] parts=a.id.split("\\|",2);
                     if(parts.length!=2){mMain(p);break;}
-                    try{double chance=Double.parseDouble(value);if(Double.isNaN(chance)||chance<0||chance>100)throw new NumberFormatException();c.set("crates."+parts[0]+".rewards."+parts[1]+".chance",chance);c.set("crates."+parts[0]+".rewards."+parts[1]+".chance-manual",true);plugin.getCrateManager().normalizeRewardChances(parts[0]);plugin.getCrateManager().save();plugin.getCrateMenu().openRewards(p,parts[0],0);}
-                    catch(NumberFormatException ex){p.sendMessage(plugin.color("&cEnter a number between 0 and 100."));plugin.getCrateMenu().openRewards(p,parts[0],0);}
+                    try{
+                        double chance=Double.parseDouble(value);
+                        if(Double.isNaN(chance)||Double.isInfinite(chance)||chance<0||chance>100)throw new NumberFormatException();
+                        String rewardsPath="crates."+parts[0]+".rewards";
+                        org.bukkit.configuration.ConfigurationSection rewardsSection=c.getConfigurationSection(rewardsPath);
+                        double otherManual=0.0;
+                        if(rewardsSection!=null)for(String rewardId:rewardsSection.getKeys(false)){
+                            if(rewardId.equals(parts[1]))continue;
+                            String rewardPath=rewardsPath+"."+rewardId;
+                            if(c.getBoolean(rewardPath+".chance-manual",false)){
+                                double current=c.getDouble(rewardPath+".chance",0.0);
+                                if(!Double.isNaN(current)&&!Double.isInfinite(current)&&current>0)otherManual+=current;
+                            }
+                        }
+                        double maxChance=Math.max(0.0,100.0-otherManual);
+                        if(chance>maxChance+0.000001){
+                            p.sendMessage(text("&cThe total of manual chances cannot exceed 100%. Maximum available: &e"+String.format(java.util.Locale.US,"%.2f",maxChance)+"%"));
+                            plugin.getCrateMenu().openRewards(p,parts[0],0);
+                            break;
+                        }
+                        c.set(rewardsPath+"."+parts[1]+".chance",chance);
+                        c.set(rewardsPath+"."+parts[1]+".chance-manual",true);
+                        plugin.getCrateManager().normalizeRewardChances(parts[0]);
+                        plugin.getCrateManager().save();
+                        plugin.getCrateMenu().openRewards(p,parts[0],0);
+                    }catch(NumberFormatException ex){
+                        p.sendMessage(text("&cEnter a number between 0 and 100."));
+                        plugin.getCrateMenu().openRewards(p,parts[0],0);
+                    }
                     break;
                 }
-                case KEY_MATERIAL:case CRATE_BLOCK_MATERIAL:Material mat=Material.matchMaterial(value);boolean crate=a.type==InputType.CRATE_BLOCK_MATERIAL;if(mat==null||mat==Material.AIR||(crate&&!mat.isBlock()))p.sendMessage(plugin.color("&cInvalid material."));else{c.set(crate?"crates."+a.id+".block.material":"keys."+a.id+".material",mat.name());plugin.getCrateManager().save();}if(crate)plugin.getCrateMenu().openCrateBlockEditor(p,a.id);else plugin.getCrateMenu().openKeyItemEditor(p,a.id);break;
+                case KEY_MATERIAL:case CRATE_BLOCK_MATERIAL:Material mat=Material.matchMaterial(value);boolean crate=a.type==InputType.CRATE_BLOCK_MATERIAL;if(mat==null||mat==Material.AIR||(crate&&!mat.isBlock()))p.sendMessage(text("&cInvalid material."));else{c.set(crate?"crates."+a.id+".block.material":"keys."+a.id+".material",mat.name());plugin.getCrateManager().save();}if(crate)plugin.getCrateMenu().openCrateBlockEditor(p,a.id);else plugin.getCrateMenu().openKeyItemEditor(p,a.id);break;
             }
         }});
     }
@@ -245,7 +273,7 @@ public class CrateListener implements Listener {
     private void saveOpen(Player p,boolean key,String id){plugin.getCrateManager().save();if(key)plugin.getCrateMenu().openKeySettings(p,id);else plugin.getCrateMenu().openCrateSettings(p,id);}
     private void mMain(Player p){plugin.getCrateMenu().openMain(p);}
     private String loc(Block b){return b.getWorld().getName()+";"+b.getX()+";"+b.getY()+";"+b.getZ();}
-    @EventHandler public void onPlace(BlockPlaceEvent e){String id=plugin.getCrateManager().getTag(e.getItemInHand(),"BC_CRATE");if(id!=null&&plugin.getCrateManager().crateExists(id)){plugin.getCrateManager().addPlaced(id,loc(e.getBlockPlaced()));plugin.getHologramManager().refreshAt(id,e.getBlockPlaced().getLocation());e.getPlayer().sendMessage(plugin.color("&aCrate &e"+id+" &aplaced."));}}
+    @EventHandler public void onPlace(BlockPlaceEvent e){String id=plugin.getCrateManager().getTag(e.getItemInHand(),"BC_CRATE");if(id!=null&&plugin.getCrateManager().crateExists(id)){plugin.getCrateManager().addPlaced(id,loc(e.getBlockPlaced()));plugin.getHologramManager().refreshAt(id,e.getBlockPlaced().getLocation());e.getPlayer().sendMessage(text("&aCrate &e"+id+" &aplaced."));}}
     @EventHandler public void onBreak(BlockBreakEvent e){String id=plugin.getCrateManager().getPlacedCrate(loc(e.getBlock()));if(id!=null){plugin.getHologramManager().removeAt(e.getBlock().getLocation());plugin.getCrateManager().removePlaced(id,loc(e.getBlock()));e.setDropItems(false);e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(),plugin.getCrateManager().createCrateItem(id,1));}}
     @EventHandler public void onChunkLoad(ChunkLoadEvent e){plugin.getHologramManager().handleChunkLoad(e.getChunk());}
 
@@ -260,7 +288,7 @@ public class CrateListener implements Listener {
         YamlConfiguration c=plugin.getCrateManager().getConfiguration();
         String cratePath="crates."+id+".";
         if(!c.getBoolean(cratePath+"settings.enabled",true)){
-            p.sendMessage(plugin.color("&cThis crate is disabled."));
+            p.sendMessage(text("&cThis crate is disabled."));
             return;
         }
         if(e.getAction()==Action.LEFT_CLICK_BLOCK){
@@ -269,18 +297,18 @@ public class CrateListener implements Listener {
         }
         String cratePermission=c.getString(cratePath+"settings.permission.node","bettercrates.crate."+id+".open");
         if(c.getBoolean(cratePath+"settings.permission.enabled",false)&&!p.hasPermission(cratePermission)){
-            p.sendMessage(plugin.color("&cYou do not have permission to open this crate."));
+            p.sendMessage(text("&cYou do not have permission to open this crate."));
             return;
         }
         String keyId=c.getString(cratePath+"key-id",id);
         if(!plugin.getCrateManager().keyExists(keyId)){
-            p.sendMessage(plugin.color("&cThe key configured for this crate does not exist."));
+            p.sendMessage(text("&cThe key configured for this crate does not exist."));
             return;
         }
         String keyPath="keys."+keyId+".";
         String keyPermission=c.getString(keyPath+"permission.node","bettercrates.key."+keyId+".use");
         if(c.getBoolean(keyPath+"permission.enabled",false)&&!p.hasPermission(keyPermission)){
-            p.sendMessage(plugin.color("&cYou do not have permission to use this key."));
+            p.sendMessage(text("&cYou do not have permission to use this key."));
             return;
         }
         int keySlot=-1;
@@ -295,12 +323,12 @@ public class CrateListener implements Listener {
             if(push.lengthSquared()>0)push.normalize().multiply(0.8);
             push.setY(0.25);
             p.setVelocity(push);
-            p.sendMessage(plugin.color("&cYou do not have a key to open this crate."));
+            p.sendMessage(text("&cYou do not have a key to open this crate."));
             return;
         }
         String rewardsPath=cratePath+"rewards.";
         if(!c.isConfigurationSection(cratePath+"rewards")){
-            p.sendMessage(plugin.color("&cThis crate has no rewards configured yet."));
+            p.sendMessage(text("&cThis crate has no rewards configured yet."));
             return;
         }
         List<String> rewardIds=new ArrayList<String>(c.getConfigurationSection(cratePath+"rewards").getKeys(false));
@@ -311,7 +339,7 @@ public class CrateListener implements Listener {
             if(reward!=null&&reward.getType()!=Material.AIR&&chance>0&&!Double.isNaN(chance)&&!Double.isInfinite(chance))total+=chance;
         }
         if(total<=0){
-            p.sendMessage(plugin.color("&cThis crate has no rewards with a valid chance."));
+            p.sendMessage(text("&cThis crate has no rewards with a valid chance."));
             return;
         }
         double roll=Math.random()*Math.max(100.0,total);
@@ -334,11 +362,11 @@ public class CrateListener implements Listener {
             String crateName=c.getString(cratePath+"settings.display-name","&e"+id);
             String playerMessage=c.getString(messageBase+"player.message","&aYou opened %crate%&a.");
             if(c.getBoolean(messageBase+"player.enabled",false)&&!playerMessage.isEmpty()){
-                p.sendMessage(plugin.color(playerMessage.replace("%crate%",crateName).replace("%player%",p.getName())));
+                p.sendMessage(text(playerMessage.replace("%crate%",crateName).replace("%player%",p.getName())));
             }
             String globalMessage=c.getString(messageBase+"global.message","&e%player% &7opened %crate%&7.");
             if(c.getBoolean(messageBase+"global.enabled",false)&&!globalMessage.isEmpty()){
-                String rendered=plugin.color(globalMessage.replace("%crate%",crateName).replace("%player%",p.getName()));
+                String rendered=text(globalMessage.replace("%crate%",crateName).replace("%player%",p.getName()));
                 for(Player online:Bukkit.getOnlinePlayers())online.sendMessage(rendered);
             }
             if(c.getBoolean(messageBase+"reward.enabled",true)){
@@ -346,7 +374,7 @@ public class CrateListener implements Listener {
                 if(!rewardMessage.isEmpty()){
                     String rewardName=getRewardName(prize);
                     String rendered=rewardMessage.replace("%crate%",crateName).replace("%player%",p.getName()).replace("%reward%",rewardName);
-                    p.sendMessage(plugin.color(rendered));
+                    p.sendMessage(text(rendered));
                 }
             }
         }
