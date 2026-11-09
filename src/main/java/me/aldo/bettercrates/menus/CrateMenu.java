@@ -126,7 +126,7 @@ public class CrateMenu {
         if(c.isConfigurationSection(base.substring(0,base.length()-1)))rewards.addAll(c.getConfigurationSection(base.substring(0,base.length()-1)).getKeys(false));
         java.util.Collections.sort(rewards);
         double total=0.0;
-        for(String rewardId:rewards){double chance=c.getDouble(base+rewardId+".chance",100.0);if(chance>0&&!Double.isNaN(chance)&&!Double.isInfinite(chance)&&c.getItemStack(base+rewardId+".item")!=null)total+=chance;}
+        for(String rewardId:rewards){double chance=c.getDouble(base+rewardId+".chance",100.0);ItemStack configured=c.getItemStack(base+rewardId+".item");if(configured!=null&&configured.getType()!=Material.AIR&&chance>0&&!Double.isNaN(chance)&&!Double.isInfinite(chance))total+=chance;}
         int start=page*45;
         int shown=0;
         for(int i=0;i<45&&start+i<rewards.size();i++){

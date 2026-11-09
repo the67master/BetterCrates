@@ -18,6 +18,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.*;
 
@@ -163,6 +164,7 @@ public class CrateListener implements Listener {
     @EventHandler public void onBreak(BlockBreakEvent e){String id=plugin.getCrateManager().getPlacedCrate(loc(e.getBlock()));if(id!=null){plugin.getCrateManager().removePlaced(id,loc(e.getBlock()));e.setDropItems(false);e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(),plugin.getCrateManager().createCrateItem(id,1));}}
 
     @EventHandler public void onInteract(PlayerInteractEvent e){
+        if(e.getHand()!=EquipmentSlot.HAND)return;
         if(e.getClickedBlock()==null)return;
         if(e.getAction()!=Action.LEFT_CLICK_BLOCK&&e.getAction()!=Action.RIGHT_CLICK_BLOCK)return;
         String id=plugin.getCrateManager().getPlacedCrate(loc(e.getClickedBlock()));
