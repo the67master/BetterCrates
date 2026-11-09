@@ -7,8 +7,7 @@ settings:
 # General GUI and item customization.
 customization:
   gui:
-    rows: 6
-    filler-material: STAINED_GLASS_PANE
+      filler-material: STAINED_GLASS_PANE
     filler-data: 7
     filler-name: "&8 "
   crate:
@@ -36,4 +35,3 @@ keyall:
   # In weighted mode, set key IDs and their positive weights here.
   keys: {}
   broadcast: "&6&lKEYALL! &eEveryone has received their KeyAll reward."
-  announce-countdown: true

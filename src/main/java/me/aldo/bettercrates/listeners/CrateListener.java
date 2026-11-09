@@ -67,7 +67,7 @@ public class CrateListener implements Listener {
         }
         if(title.startsWith(CrateMenu.HOLOGRAM_PREFIX)){
             String id=title.substring(CrateMenu.HOLOGRAM_PREFIX.length()),base="crates."+id+".hologram.";
-            if(s==22)m.openCrateSettings(p,id);
+            if(s==40)m.openCrateSettings(p,id);
             else if(s==10){c.set(base+"enabled",!c.getBoolean(base+"enabled",true));plugin.getCrateManager().save();plugin.getHologramManager().refreshCrate(id);m.openHologramEditor(p,id);}
             else if(s==12)prompt(p,InputType.HOLOGRAM_LINE,id+"|0","Enter hologram line 1");
             else if(s==13)prompt(p,InputType.HOLOGRAM_LINE,id+"|1","Enter hologram line 2");
@@ -175,12 +175,12 @@ public class CrateListener implements Listener {
     @EventHandler public void onChat(AsyncPlayerChatEvent e){
         final Player p=e.getPlayer();final Pending a=pending.remove(p.getUniqueId());if(a==null)return;e.setCancelled(true);final String value=e.getMessage().trim();
         Bukkit.getScheduler().runTask(plugin,new Runnable(){public void run(){
-            if(value.equalsIgnoreCase("cancelar")){p.sendMessage(plugin.color("&cCancelled."));mMain(p);return;}
+            if(value.equalsIgnoreCase("cancel")||value.equalsIgnoreCase("cancelar")){p.sendMessage(plugin.color("&cCancelled."));mMain(p);return;}
             YamlConfiguration c=plugin.getCrateManager().getConfiguration();
             if((a.type==InputType.CREATE_CRATE||a.type==InputType.CREATE_KEY||a.type==InputType.CRATE_KEY)&&!value.matches("[A-Za-z0-9_.-]+")){p.sendMessage(plugin.color("&cInvalid ID."));mMain(p);return;}
             switch(a.type){
-                case CREATE_CRATE: if(plugin.getCrateManager().createCrate(value))p.sendMessage(plugin.color("&aCrate creada: &e"+value));else p.sendMessage(plugin.color("&cYa existe."));mMain(p);break;
-                case CREATE_KEY: if(plugin.getCrateManager().createKey(value))p.sendMessage(plugin.color("&aLlave creada: &e"+value));else p.sendMessage(plugin.color("&cYa existe."));mMain(p);break;
+                case CREATE_CRATE: if(plugin.getCrateManager().createCrate(value))p.sendMessage(plugin.color("&aCrate created: &e"+value));else p.sendMessage(plugin.color("&cThat ID already exists."));mMain(p);break;
+                case CREATE_KEY: if(plugin.getCrateManager().createKey(value))p.sendMessage(plugin.color("&aKey created: &e"+value));else p.sendMessage(plugin.color("&cThat ID already exists."));mMain(p);break;
                 case CRATE_NAME:c.set("crates."+a.id+".settings.display-name",value);plugin.getCrateManager().save();plugin.getHologramManager().refreshCrate(a.id);plugin.getCrateMenu().openCrateSettings(p,a.id);break;
                 case CRATE_PERMISSION:c.set("crates."+a.id+".settings.permission.node",value);saveOpen(p,false,a.id);break;
                 case CRATE_KEY:if(!plugin.getCrateManager().keyExists(value))p.sendMessage(plugin.color("&cThat key does not exist."));else c.set("crates."+a.id+".key-id",value);saveOpen(p,false,a.id);break;

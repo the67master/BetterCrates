@@ -92,7 +92,7 @@ public class BetterCrates extends JavaPlugin {
             {"Create Crate","Crear crate"},{"Create a new crate","Crear una crate nueva"},{"Create Key","Crear llave"},{"Create a key","Crear una llave"},
             {"Configure Crates","Configurar crates"},{"Configure Keys","Configurar llaves"},{"Main Menu","Menú principal"},{"Edit Crate","Editar crate"},{"Edit Key","Editar llave"},
             {"Available Rewards","Premios disponibles"},{"Crate Block","Bloque de crate"},{"Key Item","Objeto de llave"},{"Crate Hologram","Holograma de crate"},{"Crate Messages","Mensajes de crate"},
-            {"Keys","Llaves"},{"Rewards","Recompensas"},{"Status: ","Estado: "},{"Enabled","Activado"},{"Disabled","Desactivado"},{"Back","Volver"},{"Previous Page","Página anterior"},{"Next Page","Página siguiente"},{"Page ","Página "},
+            {"Keys","Llaves"},{"Rewards","Recompensas"},{"Status: ","Estado: "},{"Enabled","Activado"},{"Disabled","Desactivado"},{"Yes","Sí"},{"No","No"},{"Back","Volver"},{"Previous Page","Página anterior"},{"Next Page","Página siguiente"},{"Page ","Página "},
             {"Create crate","Crear crate"},{"Create key","Crear llave"},{"Enable / Disable","Activar / desactivar"},{"Name and Color","Nombre y color"},{"Current: ","Actual: "},{"Assign Key","Asignar llave"},{"Required: ","Requerido: "},
             {"Edit Crate Block","Editar bloque de crate"},{"Material: ","Material: "},{"Click to open editor","Click para abrir editor"},{"Edit Rewards","Editar recompensas"},{"Configure rewards and their chances","Configura los premios y sus probabilidades"},
             {"Enchantment Glint","Brillo encantado"},{"Edit Hologram","Editar holograma"},{"Configure the 3 lines above the crate","Configura las 3 líneas sobre la crate"},{"Opening messages","Mensajes de apertura"},{"Customize private and global messages","Personaliza los mensajes privados y globales"},
@@ -103,7 +103,7 @@ public class BetterCrates extends JavaPlugin {
             {"Chance: ","Probabilidad: "},{"Manual chance","Probabilidad manual"},{"Automatic chance","Probabilidad automática"},{"Left-click: edit chance","Click izquierdo: cambiar probabilidad"},{"Right-click: remove reward","Click derecho: eliminar premio"},
             {"Reward Editor","Editor de recompensas"},{"Drag an item from your inventory","Arrastra un objeto de tu inventario"},{"to an empty center slot","a un espacio libre del centro"},{"Chances auto-balance to 100%","Las probabilidades se ajustan al 100%"},{"Exit","Salir"},{"Return to crate settings","Volver a la configuración de la crate"},
             {"Approximate chance: ","Probabilidad aproximada: "},{"Rewards for ","Premios de "},{"Available items: ","Objetos disponibles: "},{"This crate has no rewards configured","Esta crate no tiene premios configurados"},{"Close preview","Cerrar vista previa"},
-            {"Line 1","Línea 1"},{"Line 2","Línea 2"},{"Line 3","Línea 3"},{"Restore defaults","Restaurar valores por defecto"},{"Edit name and color","Editar nombre y color"},{"Click to edit","Click para editar"}
+            {"Line 1","Línea 1"},{"Line 2","Línea 2"},{"Line 3","Línea 3"},{"Restore defaults","Restaurar valores por defecto"},{"Edit name and color","Editar nombre y color"},{"Click to edit","Click para editar"},{"Enabled","Activado"},{"Disabled","Desactivado"},{"Yes","Sí"},{"No","No"}
         };
         for (String[] pair : translations) text = text.replace(pair[0], pair[1]);
         return text;

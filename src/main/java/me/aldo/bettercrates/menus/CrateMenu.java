@@ -27,7 +27,7 @@ public class CrateMenu {
         ItemStack stack=new ItemStack(material); ItemMeta meta=stack.getItemMeta(); meta.setDisplayName(plugin.color(plugin.guiText(name)));
         List<String> lines=new ArrayList<String>(); for(String line:lore) lines.add(plugin.color(plugin.guiText(line))); meta.setLore(lines); stack.setItemMeta(meta); return stack;
     }
-    private void fill(Inventory inv){ ItemStack pane=new ItemStack(Material.STAINED_GLASS_PANE,1,(short)7); ItemMeta paneMeta=pane.getItemMeta(); paneMeta.setDisplayName(plugin.color("&8 ")); pane.setItemMeta(paneMeta); for(int i=0;i<inv.getSize();i++) if(inv.getItem(i)==null) inv.setItem(i,pane); }
+    private void fill(Inventory inv){ Material filler=Material.matchMaterial(plugin.getConfig().getString("customization.gui.filler-material","STAINED_GLASS_PANE")); if(filler==null||!filler.isItem())filler=Material.STAINED_GLASS_PANE; ItemStack pane=new ItemStack(filler,1,(short)plugin.getConfig().getInt("customization.gui.filler-data",7)); ItemMeta paneMeta=pane.getItemMeta(); paneMeta.setDisplayName(plugin.color(plugin.guiText(plugin.getConfig().getString("customization.gui.filler-name","&8 ")))); pane.setItemMeta(paneMeta); for(int i=0;i<inv.getSize();i++) if(inv.getItem(i)==null) inv.setItem(i,pane); }
     public void openMain(Player p){
         Inventory inv=Bukkit.createInventory(null,27,MAIN);
         inv.setItem(10,item(Material.EMERALD,"&a&lCreate Crate","&7Create a new crate"));
@@ -53,10 +53,10 @@ public class CrateMenu {
         inv.setItem(10,item(Material.REDSTONE_TORCH_ON,"&aEnable / Disable","&7Status: "+(c.getBoolean(path+"enabled",true)?"&aEnabled":"&cDisabled")));
         inv.setItem(11,item(Material.NAME_TAG,"&eName and Color","&7Current: "+c.getString(path+"display-name","&e"+id),"&eClick and type a colored name (&)"));
         inv.setItem(12,item(Material.TRIPWIRE_HOOK,"&6Assign Key","&7Current: &f"+c.getString("crates."+id+".key-id",id)));
-        inv.setItem(14,item(Material.IRON_DOOR,"&dPermission to open","&7Required: "+(c.getBoolean(path+"permission.enabled",false)?"&aSí":"&cNo")));
+        inv.setItem(14,item(Material.IRON_DOOR,"&dPermission to open","&7Required: "+(c.getBoolean(path+"permission.enabled",false)?"&aYes":"&cNo")));
         inv.setItem(15,item(Material.PAPER,"&ePermission Node","&7"+c.getString(path+"permission.node","")));
         inv.setItem(16,item(Material.CHEST,"&bEdit Crate Block","&7Material: &f"+c.getString("crates."+id+".block.material","CHEST"),"&eClick to open editor"));
-        inv.setItem(19,item(Material.CHEST,"&6Edit Rewards","&7Configure rewards and their chances","&eClick para abrir"));
+        inv.setItem(19,item(Material.CHEST,"&6Edit Rewards","&7Configure rewards and their chances","&eClick to open"));
         inv.setItem(20,item(Material.ENCHANTED_BOOK,"&dEnchantment Glint","&7"+(c.getBoolean("crates."+id+".block.glint",false)?"&aEnabled":"&cDisabled")));
         inv.setItem(21,item(Material.NAME_TAG,"&bEdit Hologram","&7Status: "+(c.getBoolean("crates."+id+".hologram.enabled",true)?"&aEnabled":"&cDisabled"),"&eConfigure the 3 lines above the crate"));
         inv.setItem(23,item(Material.PAPER,"&bOpening messages","&7Customize private and global messages"));
@@ -70,7 +70,7 @@ public class CrateMenu {
         while(lines.size()<3)lines.add("");
         String crateName=c.getString("crates."+id+".settings.display-name","&e"+id);
         Inventory inv=Bukkit.createInventory(null,45,HOLOGRAM_PREFIX+id);
-        inv.setItem(10,item(Material.REDSTONE_TORCH_ON,"&aHolograma activado / desactivado","&7Status: "+(c.getBoolean(base+"enabled",true)?"&aEnabled":"&cDisabled")));
+        inv.setItem(10,item(Material.REDSTONE_TORCH_ON,"&aEnable / Disable Hologram","&7Status: "+(c.getBoolean(base+"enabled",true)?"&aEnabled":"&cDisabled")));
         inv.setItem(12,item(Material.NAME_TAG,"&eLine 1","&7Current: "+lines.get(0).replace("%crate_name%",crateName),"&eClick to edit"));
         inv.setItem(13,item(Material.PAPER,"&eLine 2","&7Current: "+lines.get(1),"&eClick to edit"));
         inv.setItem(14,item(Material.PAPER,"&eLine 3","&7Current: "+lines.get(2),"&eClick to edit"));
@@ -115,7 +115,7 @@ public class CrateMenu {
     public void openKeyItemEditor(Player p,String id){
         Inventory inv=Bukkit.createInventory(null,27,KEY_ITEM_PREFIX+id); YamlConfiguration c=plugin.getCrateManager().getConfiguration();
         String m=c.getString("keys."+id+".material","TRIPWIRE_HOOK"); Material mat=Material.matchMaterial(m); if(mat==null)mat=Material.TRIPWIRE_HOOK;
-        inv.setItem(11,item(Material.PAPER,"&eWrite Material","&7Escribe el nombre Bukkit del objeto"));
+        inv.setItem(11,item(Material.PAPER,"&eWrite Material","&7Enter the Bukkit item material name"));
         inv.setItem(13,item(mat,"&aSelected Item","&7Current: &f"+m,"&eDrag an item here from your inventory"));
         inv.setItem(15,item(Material.EMERALD,"&aSave Item","&7Save the selected material"));
         inv.setItem(22,item(Material.ARROW,"&cBack")); fill(inv); p.openInventory(inv);
@@ -129,8 +129,8 @@ public class CrateMenu {
         return -1;
     }
     private void decorateSides(Inventory inv){
-        ItemStack pane=new ItemStack(Material.STAINED_GLASS_PANE,1,(short)7);
-        ItemMeta meta=pane.getItemMeta();meta.setDisplayName(plugin.color("&8 "));pane.setItemMeta(meta);
+        Material filler=Material.matchMaterial(plugin.getConfig().getString("customization.gui.filler-material","STAINED_GLASS_PANE"));if(filler==null||!filler.isItem())filler=Material.STAINED_GLASS_PANE;ItemStack pane=new ItemStack(filler,1,(short)plugin.getConfig().getInt("customization.gui.filler-data",7));
+        ItemMeta meta=pane.getItemMeta();meta.setDisplayName(plugin.color(plugin.guiText(plugin.getConfig().getString("customization.gui.filler-name","&8 "))));pane.setItemMeta(meta);
         int[] sides={9,18,27,36,17,26,35,44};
         for(int slot:sides)inv.setItem(slot,pane);
     }

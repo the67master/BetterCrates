@@ -65,11 +65,11 @@ public class CrateManager {
         configuration.set(p + ".hologram.lines", plugin.getConfig().getStringList("customization.hologram.default-lines").isEmpty() ? Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to preview!") : plugin.getConfig().getStringList("customization.hologram.default-lines"));
         configuration.set(p + ".messages.enabled", true);
         configuration.set(p + ".messages.player.enabled", false);
-        configuration.set(p + ".messages.player.message", "&aHas abierto %crate%&a.");
+        configuration.set(p + ".messages.player.message", "&aYou opened %crate%&a.");
         configuration.set(p + ".messages.global.enabled", false);
-        configuration.set(p + ".messages.global.message", "&e%player% &7ha abierto %crate%&7.");
+        configuration.set(p + ".messages.global.message", "&e%player% &7opened %crate%&7.");
         configuration.set(p + ".messages.reward.enabled", true);
-        configuration.set(p + ".messages.reward.message", "&e¡Te ha tocado &f%reward%&e!");
+        configuration.set(p + ".messages.reward.message", "&eYou won &f%reward%&e!");
         configuration.set(p + ".placed", new ArrayList<String>());
         configuration.createSection(p + ".rewards");
         if (!keyExists(id)) createKey(id);
@@ -139,7 +139,7 @@ public class CrateManager {
         if (material == null || material == Material.AIR || !material.isItem()) material = Material.TRIPWIRE_HOOK;
         ItemStack stack = new ItemStack(material, Math.max(1, Math.min(64, amount)));
         ItemMeta meta = stack.getItemMeta();
-        meta.setDisplayName(plugin.color(configuration.getString(p + "display-name", "&6Llave " + id)));
+        meta.setDisplayName(plugin.color(configuration.getString(p + "display-name", "&6Key " + id)));
         List<String> lore = new ArrayList<String>();
         for (String line : configuration.getStringList(p + "lore")) lore.add(plugin.color(line));
         lore.add(plugin.color("&0BC_KEY:" + id));
