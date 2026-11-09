@@ -35,11 +35,11 @@ public class CrateManager {
             String messages = "crates." + id + ".messages.";
             if (!configuration.contains(messages + "enabled")) configuration.set(messages + "enabled", true);
             if (!configuration.contains(messages + "player.enabled")) configuration.set(messages + "player.enabled", false);
-            if (!configuration.contains(messages + "player.message")) configuration.set(messages + "player.message", "&aHas abierto %crate%&a.");
+            if (!configuration.contains(messages + "player.message")) configuration.set(messages + "player.message", "&aYou opened %crate%&a.");
             if (!configuration.contains(messages + "global.enabled")) configuration.set(messages + "global.enabled", false);
-            if (!configuration.contains(messages + "global.message")) configuration.set(messages + "global.message", "&e%player% &7ha abierto %crate%&7.");
+            if (!configuration.contains(messages + "global.message")) configuration.set(messages + "global.message", "&e%player% &7opened %crate%&7.");
             if (!configuration.contains(messages + "reward.enabled")) configuration.set(messages + "reward.enabled", true);
-            if (!configuration.contains(messages + "reward.message")) configuration.set(messages + "reward.message", "&e¡Te ha tocado &f%reward%&e!");
+            if (!configuration.contains(messages + "reward.message")) configuration.set(messages + "reward.message", "&eYou won &f%reward%&e!");
         }
         save();
     }
@@ -59,10 +59,10 @@ public class CrateManager {
         configuration.set(p + ".settings.permission.enabled", false);
         configuration.set(p + ".settings.permission.node", "bettercrates.crate." + id + ".open");
         configuration.set(p + ".key-id", id);
-        configuration.set(p + ".block.material", "CHEST");
-        configuration.set(p + ".block.glint", false);
-        configuration.set(p + ".hologram.enabled", true);
-        configuration.set(p + ".hologram.lines", Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to Preview!"));
+        configuration.set(p + ".block.material", plugin.getConfig().getString("customization.crate.default-block", "CHEST"));
+        configuration.set(p + ".block.glint", plugin.getConfig().getBoolean("customization.crate.default-glint", false));
+        configuration.set(p + ".hologram.enabled", plugin.getConfig().getBoolean("customization.hologram.enabled-by-default", true));
+        configuration.set(p + ".hologram.lines", plugin.getConfig().getStringList("customization.hologram.default-lines").isEmpty() ? Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to preview!") : plugin.getConfig().getStringList("customization.hologram.default-lines"));
         configuration.set(p + ".messages.enabled", true);
         configuration.set(p + ".messages.player.enabled", false);
         configuration.set(p + ".messages.player.message", "&aHas abierto %crate%&a.");
@@ -80,12 +80,12 @@ public class CrateManager {
     public boolean createKey(String id) {
         if (keyExists(id)) return false;
         String p = "keys." + id;
-        configuration.set(p + ".material", "TRIPWIRE_HOOK");
+        configuration.set(p + ".material", plugin.getConfig().getString("customization.key.default-material", "TRIPWIRE_HOOK"));
         configuration.set(p + ".amount", 1);
-        configuration.set(p + ".display-name", "&6Llave " + id);
+        configuration.set(p + ".display-name", "&6Key " + id);
         configuration.set(p + ".color", "&6");
-        configuration.set(p + ".lore", Arrays.asList("&7Una llave de BetterCrates", "&e" + id));
-        configuration.set(p + ".glint", false);
+        configuration.set(p + ".lore", Arrays.asList("&7A BetterCrates key", "&e" + id));
+        configuration.set(p + ".glint", plugin.getConfig().getBoolean("customization.key.default-glint", false));
         configuration.set(p + ".permission.enabled", false);
         configuration.set(p + ".permission.node", "bettercrates.key." + id + ".use");
         save();
@@ -161,7 +161,7 @@ public class CrateManager {
         ItemMeta meta = stack.getItemMeta();
         meta.setDisplayName(plugin.color(configuration.getString(p + "settings.display-name", "&e" + id)));
         List<String> lore = new ArrayList<String>();
-        lore.add(plugin.color("&7Coloca este bloque para crear una crate."));
+        lore.add(plugin.color("&7Place this block to create a crate."));
         lore.add(plugin.color("&0BC_CRATE:" + id));
         meta.setLore(lore);
         if (configuration.getBoolean(p + "block.glint", false)) {
