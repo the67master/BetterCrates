@@ -1,0 +1,5 @@
+settings:
+  debug: false
+
+  # Prefijo general de BetterCrates.
+  prefix: "&8[&6BetterCrates&8] "

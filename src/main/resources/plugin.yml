@@ -1,0 +1,19 @@
+name: BetterCrates
+version: 1.0.0
+main: me.aldo.bettercrates.BetterCrates
+author: Aldo
+description: Customizable crates plugin for Spigot 1.12.2
+
+commands:
+  bc:
+    description: Comando principal de BetterCrates
+    usage: /bc help
+    aliases: [bettercrates]
+
+permissions:
+  bettercrates.admin:
+    description: Permite administrar BetterCrates
+    default: op
+  bettercrates.use:
+    description: Permite utilizar las crates
+    default: true
