@@ -1,3 +1,31 @@
-# BetterCrates
-# Las crates creadas con /bc create se guardaran aqui.
+# BetterCrates - configuración editable por GUI o YAML
 crates: {}
+keys: {}
+# Ejemplo:
+# crates:
+#   vote:
+#     settings:
+#       display-name: "&e&lCrate Vote"
+#       color: "&e"
+#       enabled: true
+#       permission:
+#         enabled: false
+#         node: "bettercrates.crate.vote.open"
+#     key-id: "vote"
+#     block:
+#       material: CHEST
+#       glint: false
+#     placed: []
+#     rewards: {}
+# keys:
+#   vote:
+#     material: TRIPWIRE_HOOK
+#     amount: 1
+#     display-name: "&6&lLlave Vote"
+#     color: "&6"
+#     lore:
+#       - "&7Una llave especial"
+#     glint: false
+#     permission:
+#       enabled: false
+#       node: "bettercrates.key.vote.use"
