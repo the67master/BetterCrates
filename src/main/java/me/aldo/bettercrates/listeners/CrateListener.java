@@ -37,7 +37,20 @@ public class CrateListener implements Listener {
         if(e.getRawSlot()<0||e.getRawSlot()>=e.getView().getTopInventory().getSize())return;
         Player p=(Player)e.getWhoClicked(); int s=e.getRawSlot(); CrateMenu m=plugin.getCrateMenu(); YamlConfiguration c=plugin.getCrateManager().getConfiguration();
         if(title.equals(CrateMenu.MAIN)){if(s==10)prompt(p,InputType.CREATE_CRATE,null,"Escribe el ID de la crate");else if(s==12)prompt(p,InputType.CREATE_KEY,null,"Escribe el ID de la llave");else if(s==14)m.openCrates(p);else if(s==16)m.openKeys(p);return;}
-        if(title.equals(CrateMenu.CRATES)||title.equals(CrateMenu.KEYS)){if(s==49){m.openMain(p);return;} ItemStack it=e.getCurrentItem();if(it==null||!it.hasItemMeta())return;String id=ChatColor.stripColor(it.getItemMeta().getDisplayName());if(title.equals(CrateMenu.CRATES)&&plugin.getCrateManager().crateExists(id))m.openCrateSettings(p,id);if(title.equals(CrateMenu.KEYS)&&plugin.getCrateManager().keyExists(id))m.openKeySettings(p,id);return;}
+        if(title.equals(CrateMenu.CRATES)||title.equals(CrateMenu.KEYS)){
+            if(s==49){m.openMain(p);return;}
+            ItemStack it=e.getCurrentItem();
+            if(it==null||!it.hasItemMeta()||!it.getItemMeta().hasLore())return;
+            String id=null;
+            for(String line:it.getItemMeta().getLore()){
+                String plain=ChatColor.stripColor(line);
+                if(plain.startsWith("ID:")){id=plain.substring(3).trim();break;}
+            }
+            if(id==null||id.isEmpty())return;
+            if(title.equals(CrateMenu.CRATES)&&plugin.getCrateManager().crateExists(id))m.openCrateSettings(p,id);
+            if(title.equals(CrateMenu.KEYS)&&plugin.getCrateManager().keyExists(id))m.openKeySettings(p,id);
+            return;
+        }
 
 
         if(title.startsWith(CrateMenu.MESSAGES_PREFIX)){
