@@ -2,7 +2,8 @@ name: BetterCrates
 version: 1.2.0
 main: me.aldo.bettercrates.BetterCrates
 author: Aldo
-description: Customizable crates plugin for Spigot 1.12.2
+description: Customizable crates and KeyAll plugin for Spigot 1.12.2
+softdepend: [PlaceholderAPI]
 commands:
   bc:
     description: Panel y administración de BetterCrates

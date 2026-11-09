@@ -1,5 +1,39 @@
 settings:
+  # Default language: en (English) or es (Spanish).
+  language: en
   debug: false
-
-  # Prefijo general de BetterCrates.
   prefix: "&8[&6BetterCrates&8] "
+
+# General GUI and item customization.
+customization:
+  gui:
+    rows: 6
+    filler-material: STAINED_GLASS_PANE
+    filler-data: 7
+    filler-name: "&8 "
+  crate:
+    default-block: CHEST
+    default-glint: false
+  key:
+    default-material: TRIPWIRE_HOOK
+    default-glint: false
+  hologram:
+    enabled-by-default: true
+    default-lines:
+      - "%crate_name%"
+      - "&7Right-Click to open!"
+      - "&7Left-Click to preview!"
+
+# Global KeyAll event.
+keyall:
+  enabled: true
+  # Initial and recurring interval. Supports d, h, m, s (example: 1d6h).
+  interval-seconds: 86400
+  next-run: 0
+  # random = one random key, all = every selected key, weighted = one weighted key.
+  distribution: random
+  # Empty means every registered key is eligible in random/all modes.
+  # In weighted mode, set key IDs and their positive weights here.
+  keys: {}
+  broadcast: "&6&lKEYALL! &eEveryone has received their KeyAll reward."
+  announce-countdown: true

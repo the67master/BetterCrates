@@ -11,6 +11,7 @@ public class CrateCommand implements CommandExecutor {
     private final BetterCrates plugin;
     public CrateCommand(BetterCrates plugin){this.plugin=plugin;}
     @Override public boolean onCommand(CommandSender sender,Command command,String label,String[] args){
+        if(args.length>0&&args[0].equalsIgnoreCase("keyall")){handleKeyAll(sender,args);return true;}
         if(args.length>0&&args[0].equalsIgnoreCase("reload")){if(!sender.hasPermission("bettercrates.admin")){plugin.sendMessage(sender,"no-permission");return true;}plugin.reloadBetterCrates();plugin.sendMessage(sender,"reloaded");return true;}
         if(!(sender instanceof Player)){plugin.sendHelp(sender);return true;}
         Player player=(Player)sender;if(!player.hasPermission("bettercrates.admin")){plugin.sendMessage(sender,"no-permission");return true;}
@@ -30,4 +31,24 @@ public class CrateCommand implements CommandExecutor {
         }
         plugin.sendMessage(sender,"unknown-command");return true;
     }
+
+    private void handleKeyAll(CommandSender sender,String[] args){
+        if(!sender.hasPermission("bettercrates.admin")){plugin.sendMessage(sender,"no-permission");return;}
+        if(args.length<2){sender.sendMessage(plugin.color("&e/bc keyall set <duration> &7- Set the KeyAll interval"));sender.sendMessage(plugin.color("&e/bc keyall mode <random|all|weighted>"));sender.sendMessage(plugin.color("&e/bc keyall add <key> [weight] &7- Add a key to the pool"));sender.sendMessage(plugin.color("&e/bc keyall remove <key>"));sender.sendMessage(plugin.color("&e/bc keyall list"));sender.sendMessage(plugin.color("&e/bc keyall time"));return;}
+        String sub=args[1].toLowerCase(java.util.Locale.ENGLISH);
+        org.bukkit.configuration.file.FileConfiguration config=plugin.getConfig();
+        if(sub.equals("set")&&args.length>=3){
+            long seconds=KeyAllManager.parseDuration(args[2]);
+            if(seconds<=0){sender.sendMessage(plugin.color("&cInvalid duration. Examples: 30m, 1h5m, 1d6h."));return;}
+            plugin.getKeyAllManager().setInterval(seconds);sender.sendMessage(plugin.color("&aKeyAll interval set to &e"+KeyAllManager.formatDuration(seconds)+"&a."));return;
+        }
+        if(sub.equals("mode")&&args.length>=3){String mode=args[2].toLowerCase(java.util.Locale.ENGLISH);if(!mode.equals("random")&&!mode.equals("all")&&!mode.equals("weighted")){sender.sendMessage(plugin.color("&cModes: random, all, weighted."));return;}config.set("keyall.distribution",mode);plugin.saveConfig();sender.sendMessage(plugin.color("&aKeyAll distribution mode: &e"+mode));return;}
+        if(sub.equals("add")&&args.length>=3){String id=args[2];if(!plugin.getCrateManager().keyExists(id)){sender.sendMessage(plugin.color("&cUnknown key: &e"+id));return;}double weight=1.0;if(args.length>=4)try{weight=Double.parseDouble(args[3]);}catch(NumberFormatException ex){weight=-1;}if(weight<=0||Double.isNaN(weight)||Double.isInfinite(weight)){sender.sendMessage(plugin.color("&cWeight must be a positive number."));return;}config.set("keyall.keys."+id,weight);plugin.saveConfig();sender.sendMessage(plugin.color("&aAdded &e"+id+"&a to the KeyAll pool with weight &e"+weight+"&a."));return;}
+        if(sub.equals("remove")&&args.length>=3){config.set("keyall.keys."+args[2],null);plugin.saveConfig();sender.sendMessage(plugin.color("&aRemoved &e"+args[2]+" &afrom the KeyAll pool."));return;}
+        if(sub.equals("list")){java.util.Set<String> ids=config.getConfigurationSection("keyall.keys")==null?java.util.Collections.<String>emptySet():config.getConfigurationSection("keyall.keys").getKeys(false);sender.sendMessage(plugin.color("&6KeyAll keys (&e"+config.getString("keyall.distribution","random")+"&6):"));if(ids.isEmpty())sender.sendMessage(plugin.color("&7No keys configured. Random mode uses all registered keys."));for(String id:ids)sender.sendMessage(plugin.color("&8- &e"+id+" &7(weight: "+config.getDouble("keyall.keys."+id)+")"));return;}
+        if(sub.equals("time")){sender.sendMessage(plugin.color("&6Next KeyAll in: &e"+plugin.getKeyAllManager().getFormattedRemaining()));return;}
+        sender.sendMessage(plugin.color("&cUnknown KeyAll subcommand. Use &e/bc keyall&c."));
+    }
+
+    private String unused(){return "";}
 }
