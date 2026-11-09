@@ -121,7 +121,7 @@ public class CrateListener implements Listener {
         }
         if(title.startsWith(CrateMenu.KEY_PREFIX)){
             String id=title.substring(CrateMenu.KEY_PREFIX.length()),path="keys."+id+".";
-            if(s==22)m.openKeys(p);
+            if(s==40)m.openKeys(p);
             else if(s==10)prompt(p,InputType.KEY_NAME,id,"Escribe el nombre de la llave con colores");
             else if(s==12)m.openKeyItemEditor(p,id);
             else if(s==14){c.set(path+"permission.enabled",!c.getBoolean(path+"permission.enabled",false));plugin.getCrateManager().save();m.openKeySettings(p,id);}
