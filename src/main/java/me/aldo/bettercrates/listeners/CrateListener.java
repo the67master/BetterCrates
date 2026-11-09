@@ -101,10 +101,11 @@ public class CrateListener implements Listener {
             if(cursor!=null&&cursor.getType()!=Material.AIR){
                 if(rewardId==null){int n=1;while(c.isConfigurationSection(base+"reward-"+n))n++;rewardId="reward-"+n;}
                 c.set(base+rewardId+".item",cursor.clone());
-                if(!c.contains(base+rewardId+".chance"))c.set(base+rewardId+".chance",100.0);
+                if(!c.contains(base+rewardId+".chance-manual"))c.set(base+rewardId+".chance-manual",false);
+                plugin.getCrateManager().normalizeRewardChances(crateId);
                 e.setCursor(new ItemStack(Material.AIR));plugin.getCrateManager().save();m.openRewards(p,crateId,page);
             }else if(rewardId!=null){
-                if(e.isRightClick()){c.set(base+rewardId,null);plugin.getCrateManager().save();m.openRewards(p,crateId,page);}
+                if(e.isRightClick()){c.set(base+rewardId,null);plugin.getCrateManager().normalizeRewardChances(crateId);plugin.getCrateManager().save();m.openRewards(p,crateId,page);}
                 else prompt(p,InputType.REWARD_CHANCE,crateId+"|"+rewardId,"Escribe la probabilidad del premio entre 0 y 100");
             }
             return;
@@ -113,8 +114,8 @@ public class CrateListener implements Listener {
             boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);String id=title.substring((crate?CrateMenu.CRATE_BLOCK_PREFIX:CrateMenu.KEY_ITEM_PREFIX).length());
             if(s==22){selectedMaterial.remove(p.getUniqueId());if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
             else if(s==11)prompt(p,crate?InputType.CRATE_BLOCK_MATERIAL:InputType.KEY_MATERIAL,id,"Escribe el material Bukkit");
-            else if(s==13){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&((crate&&cursor.getType().isBlock())||(!crate&&cursor.getType().isItem()))){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(plugin.color("&aSeleccionado: &e"+cursor.getType().name()));}}
-            else if(s==15){String mat=selectedMaterial.remove(p.getUniqueId());if(mat==null)mat=c.getString(crate?"crates."+id+".block.material":"keys."+id+".material");c.set(crate?"crates."+id+".block.material":"keys."+id+".material",mat);plugin.getCrateManager().save();p.sendMessage(plugin.color("&aMaterial guardado: &e"+mat));if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
+            else if(s==13&&crate){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&cursor.getType().isBlock()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(plugin.color("&aSelected block: &e"+cursor.getType().name()));}else{selectedMaterial.put(p.getUniqueId(),"");e.getView().getTopInventory().setItem(13,null);p.sendMessage(plugin.color("&eBlock selection cleared. Choose a block or save to restore the chest."));}}else if(s==13&&!crate){ItemStack cursor=e.getCursor();if(cursor!=null&&cursor.getType()!=Material.AIR&&cursor.getType().isItem()){selectedMaterial.put(p.getUniqueId(),cursor.getType().name());p.sendMessage(plugin.color("&aSelected: &e"+cursor.getType().name()));}}
+            else if(s==15){String mat=selectedMaterial.remove(p.getUniqueId());if(crate&&(mat==null||mat.isEmpty())){c.set("crates."+id+".block.material","CHEST");plugin.getCrateManager().save();p.sendMessage(plugin.color("&cYou must assign a block. The crate block has been restored to CHEST."));m.openCrateBlockEditor(p,id);return;}if(mat==null)mat=c.getString(crate?"crates."+id+".block.material":"keys."+id+".material");c.set(crate?"crates."+id+".block.material":"keys."+id+".material",mat);plugin.getCrateManager().save();p.sendMessage(plugin.color("&aMaterial saved: &e"+mat));if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
             return;
         }
         if(title.startsWith(CrateMenu.CRATE_PREFIX)){
@@ -129,7 +130,7 @@ public class CrateListener implements Listener {
             else if(s==19)m.openRewards(p,id,0);
             else if(s==20){String q="crates."+id+".block.glint";c.set(q,!c.getBoolean(q,false));plugin.getCrateManager().save();m.openCrateSettings(p,id);}
             else if(s==21)m.openHologramEditor(p,id);
-            else if(s==22)m.openMessagesEditor(p,id);
+            else if(s==23)m.openMessagesEditor(p,id);
             return;
         }
         if(title.startsWith(CrateMenu.KEY_PREFIX)){
@@ -159,7 +160,8 @@ public class CrateListener implements Listener {
                         Collections.sort(ids);int index=page*CrateMenu.contentSlots().length+contentIndex;String rewardId=index<ids.size()?ids.get(index):null;
                         if(rewardId==null){int n=1;while(c.isConfigurationSection(base+"reward-"+n))n++;rewardId="reward-"+n;}
                         c.set(base+rewardId+".item",old.clone());
-                        if(!c.contains(base+rewardId+".chance"))c.set(base+rewardId+".chance",100.0);
+                        if(!c.contains(base+rewardId+".chance-manual"))c.set(base+rewardId+".chance-manual",false);
+                        plugin.getCrateManager().normalizeRewardChances(crateId);
                         e.setCursor(new ItemStack(Material.AIR));
                         plugin.getCrateManager().save();plugin.getCrateMenu().openRewards((Player)e.getWhoClicked(),crateId,page);
                     }
@@ -168,7 +170,7 @@ public class CrateListener implements Listener {
             return;
         }
         if(!title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)&&!title.startsWith(CrateMenu.KEY_ITEM_PREFIX))return;
-        if(e.getRawSlots().contains(13)){e.setCancelled(true);if(e.getWhoClicked() instanceof Player){Player p=(Player)e.getWhoClicked();ItemStack old=e.getOldCursor();if(old!=null&&old.getType()!=Material.AIR){boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);if((crate&&old.getType().isBlock())||(!crate&&old.getType().isItem())){selectedMaterial.put(p.getUniqueId(),old.getType().name());p.sendMessage(plugin.color("&aSeleccionado: &e"+old.getType().name()));}}}}
+        if(e.getRawSlots().contains(13)){e.setCancelled(true);if(e.getWhoClicked() instanceof Player){Player p=(Player)e.getWhoClicked();ItemStack old=e.getOldCursor();if(old!=null&&old.getType()!=Material.AIR){boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);if((crate&&old.getType().isBlock())||(!crate&&old.getType().isItem())){selectedMaterial.put(p.getUniqueId(),old.getType().name());p.sendMessage(plugin.color("&aSelected: &e"+old.getType().name()));}}}}
     }
     @EventHandler public void onChat(AsyncPlayerChatEvent e){
         final Player p=e.getPlayer();final Pending a=pending.remove(p.getUniqueId());if(a==null)return;e.setCancelled(true);final String value=e.getMessage().trim();
@@ -212,7 +214,7 @@ public class CrateListener implements Listener {
                 case REWARD_CHANCE:{
                     String[] parts=a.id.split("\\|",2);
                     if(parts.length!=2){mMain(p);break;}
-                    try{double chance=Double.parseDouble(value);if(Double.isNaN(chance)||chance<0||chance>100)throw new NumberFormatException();c.set("crates."+parts[0]+".rewards."+parts[1]+".chance",chance);plugin.getCrateManager().save();plugin.getCrateMenu().openRewards(p,parts[0],0);}
+                    try{double chance=Double.parseDouble(value);if(Double.isNaN(chance)||chance<0||chance>100)throw new NumberFormatException();c.set("crates."+parts[0]+".rewards."+parts[1]+".chance",chance);c.set("crates."+parts[0]+".rewards."+parts[1]+".chance-manual",true);plugin.getCrateManager().normalizeRewardChances(parts[0]);plugin.getCrateManager().save();plugin.getCrateMenu().openRewards(p,parts[0],0);}
                     catch(NumberFormatException ex){p.sendMessage(plugin.color("&cEscribe un número entre 0 y 100."));plugin.getCrateMenu().openRewards(p,parts[0],0);}
                     break;
                 }

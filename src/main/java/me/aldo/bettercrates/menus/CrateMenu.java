@@ -59,7 +59,7 @@ public class CrateMenu {
         inv.setItem(19,item(Material.CHEST,"&6Editar recompensas","&7Configura los premios y sus probabilidades","&eClick para abrir"));
         inv.setItem(20,item(Material.ENCHANTED_BOOK,"&dBrillo encantado","&7"+(c.getBoolean("crates."+id+".block.glint",false)?"&aActivado":"&cDesactivado")));
         inv.setItem(21,item(Material.NAME_TAG,"&bEditar holograma","&7Estado: "+(c.getBoolean("crates."+id+".hologram.enabled",true)?"&aActivado":"&cDesactivado"),"&eConfigura las 3 líneas sobre la crate"));
-        inv.setItem(22,item(Material.PAPER,"&bMensajes de apertura","&7Personaliza mensajes privados y globales"));
+        inv.setItem(23,item(Material.PAPER,"&bOpening messages","&7Customize private and global messages"));
         inv.setItem(40,item(Material.ARROW,"&cVolver")); fill(inv); p.openInventory(inv);
     }
     public void openHologramEditor(Player p,String id){
@@ -150,14 +150,15 @@ public class CrateMenu {
             ItemStack display=reward.clone();ItemMeta meta=display.getItemMeta();
             List<String> lore=meta.hasLore()?new ArrayList<String>(meta.getLore()):new ArrayList<String>();
             lore.add(plugin.color("&8ID: &7"+rewardId));
-            lore.add(plugin.color("&eProbabilidad: &f"+c.getDouble(path+".chance",100.0)+"%"));
+            lore.add(plugin.color("&eChance: &f"+String.format(java.util.Locale.US,"%.2f",c.getDouble(path+".chance",0.0))+"%"));
+            lore.add(plugin.color(c.getBoolean(path+".chance-manual",false)?"&aManual chance":"&bAutomatic chance"));
             lore.add(plugin.color("&7Click izquierdo: cambiar probabilidad"));
             lore.add(plugin.color("&7Click derecho: eliminar premio"));
             meta.setLore(lore);display.setItemMeta(meta);inv.setItem(slots[i],display);
         }
         decorateSides(inv);
         inv.setItem(45,item(Material.ARROW,"&ePágina anterior"));
-        inv.setItem(47,item(Material.BOOK,"&6Editor de recompensas","&7Arrastra un objeto de tu inventario","&7a un espacio libre del centro"));
+        inv.setItem(47,item(Material.BOOK,"&6Reward editor","&7Drag an item from your inventory","&7to an empty center slot","&7Chances auto-balance to 100%"));
         inv.setItem(49,item(Material.ARROW,"&cEscape","&7Volver a la configuración de la crate"));
         inv.setItem(51,item(Material.PAPER,"&ePágina &f"+(page+1),"&7Premios: &f"+rewards.size()));
         inv.setItem(53,item(Material.ARROW,"&ePágina siguiente"));

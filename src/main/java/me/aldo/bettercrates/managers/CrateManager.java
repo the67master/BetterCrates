@@ -92,6 +92,33 @@ public class CrateManager {
         return true;
     }
 
+
+    public void normalizeRewardChances(String crateId) {
+        String base = "crates." + crateId + ".rewards";
+        ConfigurationSection section = configuration.getConfigurationSection(base);
+        if (section == null) return;
+        List<String> ids = new ArrayList<String>(section.getKeys(false));
+        double manualTotal = 0.0;
+        int automatic = 0;
+        for (String id : ids) {
+            String path = base + "." + id;
+            ItemStack item = configuration.getItemStack(path + ".item");
+            if (item == null || item.getType() == Material.AIR) continue;
+            if (configuration.getBoolean(path + ".chance-manual", false)) {
+                double chance = configuration.getDouble(path + ".chance", 0.0);
+                if (!Double.isNaN(chance) && !Double.isInfinite(chance) && chance > 0) manualTotal += chance;
+            } else automatic++;
+        }
+        double remaining = Math.max(0.0, 100.0 - manualTotal);
+        double each = automatic > 0 ? remaining / automatic : 0.0;
+        for (String id : ids) {
+            String path = base + "." + id;
+            ItemStack item = configuration.getItemStack(path + ".item");
+            if (item == null || item.getType() == Material.AIR) continue;
+            if (!configuration.getBoolean(path + ".chance-manual", false)) configuration.set(path + ".chance", each);
+        }
+    }
+
     public boolean crateExists(String id) { return configuration != null && configuration.isConfigurationSection("crates." + id); }
     public boolean keyExists(String id) { return configuration != null && configuration.isConfigurationSection("keys." + id); }
 
