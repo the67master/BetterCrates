@@ -22,20 +22,46 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 
 public class CrateListener implements Listener {
-    private enum InputType { CREATE_CRATE, CREATE_KEY, CRATE_NAME, CRATE_KEY, CRATE_PERMISSION, KEY_NAME, KEY_MATERIAL, KEY_PERMISSION, CRATE_BLOCK_MATERIAL }
+    private enum InputType { CREATE_CRATE, CREATE_KEY, CRATE_NAME, CRATE_KEY, CRATE_PERMISSION, KEY_NAME, KEY_MATERIAL, KEY_PERMISSION, CRATE_BLOCK_MATERIAL, REWARD_CHANCE }
     private static class Pending { final InputType type; final String id; Pending(InputType t,String i){type=t;id=i;} }
     private final BetterCrates plugin;
     private final Map<UUID,Pending> pending=new HashMap<UUID,Pending>();
     private final Map<UUID,String> selectedMaterial=new HashMap<UUID,String>();
     public CrateListener(BetterCrates plugin){this.plugin=plugin;}
     private void prompt(Player p,InputType t,String id,String message){pending.put(p.getUniqueId(),new Pending(t,id));p.closeInventory();p.sendMessage(plugin.color("&6BetterCrates &8» &e"+message+" &7(escribe cancelar para salir)"));}
-    private boolean isMenu(String t){return t.equals(CrateMenu.MAIN)||t.equals(CrateMenu.CRATES)||t.equals(CrateMenu.KEYS)||t.startsWith(CrateMenu.CRATE_PREFIX)||t.startsWith(CrateMenu.KEY_PREFIX)||t.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||t.startsWith(CrateMenu.KEY_ITEM_PREFIX);}
+    private boolean isMenu(String t){return t.equals(CrateMenu.MAIN)||t.equals(CrateMenu.CRATES)||t.equals(CrateMenu.KEYS)||t.startsWith(CrateMenu.CRATE_PREFIX)||t.startsWith(CrateMenu.KEY_PREFIX)||t.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||t.startsWith(CrateMenu.KEY_ITEM_PREFIX)||t.startsWith(CrateMenu.REWARDS_PREFIX);}
     @EventHandler public void onClick(InventoryClickEvent e){
         if(!(e.getWhoClicked() instanceof Player))return; String title=e.getView().getTitle(); if(!isMenu(title))return; e.setCancelled(true);
         if(e.getRawSlot()<0||e.getRawSlot()>=e.getView().getTopInventory().getSize())return;
         Player p=(Player)e.getWhoClicked(); int s=e.getRawSlot(); CrateMenu m=plugin.getCrateMenu(); YamlConfiguration c=plugin.getCrateManager().getConfiguration();
         if(title.equals(CrateMenu.MAIN)){if(s==10)prompt(p,InputType.CREATE_CRATE,null,"Escribe el ID de la crate");else if(s==12)prompt(p,InputType.CREATE_KEY,null,"Escribe el ID de la llave");else if(s==14)m.openCrates(p);else if(s==16)m.openKeys(p);return;}
         if(title.equals(CrateMenu.CRATES)||title.equals(CrateMenu.KEYS)){if(s==49){m.openMain(p);return;} ItemStack it=e.getCurrentItem();if(it==null||!it.hasItemMeta())return;String id=ChatColor.stripColor(it.getItemMeta().getDisplayName());if(title.equals(CrateMenu.CRATES)&&plugin.getCrateManager().crateExists(id))m.openCrateSettings(p,id);if(title.equals(CrateMenu.KEYS)&&plugin.getCrateManager().keyExists(id))m.openKeySettings(p,id);return;}
+
+        if(title.startsWith(CrateMenu.REWARDS_PREFIX)){
+            String data=title.substring(CrateMenu.REWARDS_PREFIX.length());int split=data.lastIndexOf(':');
+            if(split<1)return;String crateId=data.substring(0,split);int page;
+            try{page=Integer.parseInt(data.substring(split+1));}catch(NumberFormatException ex){return;}
+            String base="crates."+crateId+".rewards.";
+            if(s==49){m.openCrateSettings(p,crateId);return;}
+            if(s==45){m.openRewards(p,crateId,Math.max(0,page-1));return;}
+            if(s==53){m.openRewards(p,crateId,page+1);return;}
+            if(s>=45)return;
+            List<String> ids=new ArrayList<String>();
+            if(c.isConfigurationSection(base.substring(0,base.length()-1)))ids.addAll(c.getConfigurationSection(base.substring(0,base.length()-1)).getKeys(false));
+            Collections.sort(ids);
+            int index=page*45+s;String rewardId=index<ids.size()?ids.get(index):null;
+            ItemStack cursor=e.getCursor();
+            if(cursor!=null&&cursor.getType()!=Material.AIR){
+                if(rewardId==null){int n=1;while(c.isConfigurationSection(base+"reward-"+n))n++;rewardId="reward-"+n;}
+                c.set(base+rewardId+".item",cursor.clone());
+                if(!c.contains(base+rewardId+".chance"))c.set(base+rewardId+".chance",100.0);
+                e.setCursor(new ItemStack(Material.AIR));plugin.getCrateManager().save();m.openRewards(p,crateId,page);
+            }else if(rewardId!=null){
+                if(e.isRightClick()){c.set(base+rewardId,null);plugin.getCrateManager().save();m.openRewards(p,crateId,page);}
+                else prompt(p,InputType.REWARD_CHANCE,crateId+"|"+rewardId,"Escribe la probabilidad del premio entre 0 y 100");
+            }
+            return;
+        }
         if(title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||title.startsWith(CrateMenu.KEY_ITEM_PREFIX)){
             boolean crate=title.startsWith(CrateMenu.CRATE_BLOCK_PREFIX);String id=title.substring((crate?CrateMenu.CRATE_BLOCK_PREFIX:CrateMenu.KEY_ITEM_PREFIX).length());
             if(s==22){selectedMaterial.remove(p.getUniqueId());if(crate)m.openCrateSettings(p,id);else m.openKeySettings(p,id);}
@@ -53,6 +79,7 @@ public class CrateListener implements Listener {
             else if(s==14){c.set(path+"permission.enabled",!c.getBoolean(path+"permission.enabled",false));plugin.getCrateManager().save();m.openCrateSettings(p,id);}
             else if(s==15)prompt(p,InputType.CRATE_PERMISSION,id,"Escribe el nodo de permiso");
             else if(s==16)m.openCrateBlockEditor(p,id);
+            else if(s==17)m.openRewards(p,id,0);
             else if(s==18){String q="crates."+id+".block.glint";c.set(q,!c.getBoolean(q,false));plugin.getCrateManager().save();m.openCrateSettings(p,id);}
             return;
         }
@@ -84,6 +111,13 @@ public class CrateListener implements Listener {
                 case CRATE_KEY:if(!plugin.getCrateManager().keyExists(value))p.sendMessage(plugin.color("&cEsa llave no existe."));else c.set("crates."+a.id+".key-id",value);saveOpen(p,false,a.id);break;
                 case KEY_NAME:c.set("keys."+a.id+".display-name",value);saveOpen(p,true,a.id);break;
                 case KEY_PERMISSION:c.set("keys."+a.id+".permission.node",value);saveOpen(p,true,a.id);break;
+                case REWARD_CHANCE:{
+                    String[] parts=a.id.split("\\|",2);
+                    if(parts.length!=2){mMain(p);break;}
+                    try{double chance=Double.parseDouble(value);if(Double.isNaN(chance)||chance<0||chance>100)throw new NumberFormatException();c.set("crates."+parts[0]+".rewards."+parts[1]+".chance",chance);plugin.getCrateManager().save();plugin.getCrateMenu().openRewards(p,parts[0],0);}
+                    catch(NumberFormatException ex){p.sendMessage(plugin.color("&cEscribe un número entre 0 y 100."));plugin.getCrateMenu().openRewards(p,parts[0],0);}
+                    break;
+                }
                 case KEY_MATERIAL:case CRATE_BLOCK_MATERIAL:Material mat=Material.matchMaterial(value);boolean crate=a.type==InputType.CRATE_BLOCK_MATERIAL;if(mat==null||mat==Material.AIR||(crate&&!mat.isBlock()))p.sendMessage(plugin.color("&cMaterial inválido."));else{c.set(crate?"crates."+a.id+".block.material":"keys."+a.id+".material",mat.name());plugin.getCrateManager().save();}if(crate)plugin.getCrateMenu().openCrateBlockEditor(p,a.id);else plugin.getCrateMenu().openKeyItemEditor(p,a.id);break;
             }
         }});
