@@ -26,8 +26,9 @@ public class CrateCommand implements CommandExecutor {
             int amount=1;if(args.length>=4)try{amount=Math.max(1,Math.min(64,Integer.parseInt(args[3])));}catch(NumberFormatException ex){sender.sendMessage(text("&cInvalid amount."));return true;}
             boolean key=args[0].equalsIgnoreCase("givekey");
             ItemStack item=key?plugin.getCrateManager().createKeyItem(args[2],amount):plugin.getCrateManager().createCrateItem(args[2],amount);
-            if(item==null){sender.sendMessage(text("&cUnknown "+(key?"key.":"crate.")));return true;}
-            target.getInventory().addItem(item);
+            if(item==null){sender.sendMessage(text(key?"&cUnknown key.":"&cUnknown crate."));return true;}
+            java.util.Map<Integer,ItemStack> leftovers=target.getInventory().addItem(item);
+            for(ItemStack leftover:leftovers.values())target.getWorld().dropItemNaturally(target.getLocation(),leftover);
             sender.sendMessage(text("&aGave &e"+amount+" &a"+args[2]+" to &e"+target.getName()+"&a."));
             return true;
         }

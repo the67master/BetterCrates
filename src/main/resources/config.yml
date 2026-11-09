@@ -31,7 +31,8 @@ keyall:
   next-run: 0
   # random = one random key, all = every selected key, weighted = one weighted key.
   distribution: random
-  # Empty means every registered key is eligible in random/all modes.
-  # In weighted mode, set key IDs and their positive weights here.
+  # Empty means every registered key is eligible.
+  # Weighted mode uses equal weights when this section is empty.
+  # Add key IDs with positive weights to customize their relative chances.
   keys: {}
   broadcast: "&6&lKEYALL! &eEveryone has received their KeyAll reward."
