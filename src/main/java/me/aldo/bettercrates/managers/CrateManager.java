@@ -31,7 +31,7 @@ public class CrateManager {
         for (String id : getCrateIds()) {
             String hologram = "crates." + id + ".hologram.";
             if (!configuration.contains(hologram + "enabled")) configuration.set(hologram + "enabled", true);
-            if (!configuration.isList(hologram + "lines")) configuration.set(hologram + "lines", Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to Preview!"));
+            if (!configuration.isList(hologram + "lines")) { List<String> defaults = plugin.getConfig().getStringList("customization.hologram.default-lines"); configuration.set(hologram + "lines", defaults.isEmpty() ? Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to preview!") : defaults); }
             String messages = "crates." + id + ".messages.";
             if (!configuration.contains(messages + "enabled")) configuration.set(messages + "enabled", true);
             if (!configuration.contains(messages + "player.enabled")) configuration.set(messages + "player.enabled", false);
