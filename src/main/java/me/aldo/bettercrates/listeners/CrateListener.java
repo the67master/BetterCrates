@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -23,14 +24,14 @@ import org.bukkit.inventory.EquipmentSlot;
 import java.util.*;
 
 public class CrateListener implements Listener {
-    private enum InputType { CREATE_CRATE, CREATE_KEY, CRATE_NAME, CRATE_KEY, CRATE_PERMISSION, KEY_NAME, KEY_MATERIAL, KEY_PERMISSION, CRATE_BLOCK_MATERIAL, REWARD_CHANCE }
+    private enum InputType { CREATE_CRATE, CREATE_KEY, CRATE_NAME, CRATE_KEY, CRATE_PERMISSION, KEY_NAME, KEY_MATERIAL, KEY_PERMISSION, CRATE_BLOCK_MATERIAL, REWARD_CHANCE, HOLOGRAM_LINE }
     private static class Pending { final InputType type; final String id; Pending(InputType t,String i){type=t;id=i;} }
     private final BetterCrates plugin;
     private final Map<UUID,Pending> pending=new HashMap<UUID,Pending>();
     private final Map<UUID,String> selectedMaterial=new HashMap<UUID,String>();
     public CrateListener(BetterCrates plugin){this.plugin=plugin;}
     private void prompt(Player p,InputType t,String id,String message){pending.put(p.getUniqueId(),new Pending(t,id));p.closeInventory();p.sendMessage(plugin.color("&6BetterCrates &8» &e"+message+" &7(escribe cancelar para salir)"));}
-    private boolean isMenu(String t){return t.equals(CrateMenu.MAIN)||t.equals(CrateMenu.CRATES)||t.equals(CrateMenu.KEYS)||t.startsWith(CrateMenu.CRATE_PREFIX)||t.startsWith(CrateMenu.KEY_PREFIX)||t.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||t.startsWith(CrateMenu.KEY_ITEM_PREFIX)||t.startsWith(CrateMenu.REWARDS_PREFIX)||t.startsWith(CrateMenu.PREVIEW_PREFIX);}
+    private boolean isMenu(String t){return t.equals(CrateMenu.MAIN)||t.equals(CrateMenu.CRATES)||t.equals(CrateMenu.KEYS)||t.startsWith(CrateMenu.CRATE_PREFIX)||t.startsWith(CrateMenu.KEY_PREFIX)||t.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||t.startsWith(CrateMenu.KEY_ITEM_PREFIX)||t.startsWith(CrateMenu.REWARDS_PREFIX)||t.startsWith(CrateMenu.PREVIEW_PREFIX)||t.startsWith(CrateMenu.HOLOGRAM_PREFIX);}
     @EventHandler public void onClick(InventoryClickEvent e){
         if(!(e.getWhoClicked() instanceof Player))return; String title=e.getView().getTitle(); if(!isMenu(title))return; e.setCancelled(true);
         if(e.getRawSlot()<0||e.getRawSlot()>=e.getView().getTopInventory().getSize())return;
@@ -39,6 +40,16 @@ public class CrateListener implements Listener {
         if(title.equals(CrateMenu.CRATES)||title.equals(CrateMenu.KEYS)){if(s==49){m.openMain(p);return;} ItemStack it=e.getCurrentItem();if(it==null||!it.hasItemMeta())return;String id=ChatColor.stripColor(it.getItemMeta().getDisplayName());if(title.equals(CrateMenu.CRATES)&&plugin.getCrateManager().crateExists(id))m.openCrateSettings(p,id);if(title.equals(CrateMenu.KEYS)&&plugin.getCrateManager().keyExists(id))m.openKeySettings(p,id);return;}
 
 
+        if(title.startsWith(CrateMenu.HOLOGRAM_PREFIX)){
+            String id=title.substring(CrateMenu.HOLOGRAM_PREFIX.length()),base="crates."+id+".hologram.";
+            if(s==22)m.openCrateSettings(p,id);
+            else if(s==10){c.set(base+"enabled",!c.getBoolean(base+"enabled",true));plugin.getCrateManager().save();plugin.getHologramManager().refreshCrate(id);m.openHologramEditor(p,id);}
+            else if(s==12)prompt(p,InputType.HOLOGRAM_LINE,id+"|0","Escribe la primera línea del holograma");
+            else if(s==13)prompt(p,InputType.HOLOGRAM_LINE,id+"|1","Escribe la segunda línea del holograma");
+            else if(s==14)prompt(p,InputType.HOLOGRAM_LINE,id+"|2","Escribe la tercera línea del holograma");
+            else if(s==16){c.set(base+"enabled",true);c.set(base+"lines",Arrays.asList("%crate_name%","&7Right-Click to open!","&7Left-Click to Preview!"));plugin.getCrateManager().save();plugin.getHologramManager().refreshCrate(id);m.openHologramEditor(p,id);}
+            return;
+        }
         if(title.startsWith(CrateMenu.PREVIEW_PREFIX)){
             String data=title.substring(CrateMenu.PREVIEW_PREFIX.length());int split=data.lastIndexOf(':');
             if(split<1)return;String crateId=data.substring(0,split);int page;
@@ -92,6 +103,7 @@ public class CrateListener implements Listener {
             else if(s==16)m.openCrateBlockEditor(p,id);
             else if(s==17)m.openRewards(p,id,0);
             else if(s==18){String q="crates."+id+".block.glint";c.set(q,!c.getBoolean(q,false));plugin.getCrateManager().save();m.openCrateSettings(p,id);}
+            else if(s==19)m.openHologramEditor(p,id);
             return;
         }
         if(title.startsWith(CrateMenu.KEY_PREFIX)){
@@ -141,11 +153,26 @@ public class CrateListener implements Listener {
             switch(a.type){
                 case CREATE_CRATE: if(plugin.getCrateManager().createCrate(value))p.sendMessage(plugin.color("&aCrate creada: &e"+value));else p.sendMessage(plugin.color("&cYa existe."));mMain(p);break;
                 case CREATE_KEY: if(plugin.getCrateManager().createKey(value))p.sendMessage(plugin.color("&aLlave creada: &e"+value));else p.sendMessage(plugin.color("&cYa existe."));mMain(p);break;
-                case CRATE_NAME:c.set("crates."+a.id+".settings.display-name",value);saveOpen(p,false,a.id);break;
+                case CRATE_NAME:c.set("crates."+a.id+".settings.display-name",value);plugin.getCrateManager().save();plugin.getHologramManager().refreshCrate(a.id);plugin.getCrateMenu().openCrateSettings(p,a.id);break;
                 case CRATE_PERMISSION:c.set("crates."+a.id+".settings.permission.node",value);saveOpen(p,false,a.id);break;
                 case CRATE_KEY:if(!plugin.getCrateManager().keyExists(value))p.sendMessage(plugin.color("&cEsa llave no existe."));else c.set("crates."+a.id+".key-id",value);saveOpen(p,false,a.id);break;
                 case KEY_NAME:c.set("keys."+a.id+".display-name",value);saveOpen(p,true,a.id);break;
                 case KEY_PERMISSION:c.set("keys."+a.id+".permission.node",value);saveOpen(p,true,a.id);break;
+                case HOLOGRAM_LINE:{
+                    String[] parts=a.id.split("\\|",2);
+                    if(parts.length!=2){mMain(p);break;}
+                    int line;
+                    try{line=Integer.parseInt(parts[1]);}catch(NumberFormatException ex){mMain(p);break;}
+                    if(line<0||line>2){mMain(p);break;}
+                    List<String> lines=c.getStringList("crates."+parts[0]+".hologram.lines");
+                    while(lines.size()<3)lines.add("");
+                    lines.set(line,value);
+                    c.set("crates."+parts[0]+".hologram.lines",lines);
+                    plugin.getCrateManager().save();
+                    plugin.getHologramManager().refreshCrate(parts[0]);
+                    plugin.getCrateMenu().openHologramEditor(p,parts[0]);
+                    break;
+                }
                 case REWARD_CHANCE:{
                     String[] parts=a.id.split("\\|",2);
                     if(parts.length!=2){mMain(p);break;}
@@ -160,8 +187,9 @@ public class CrateListener implements Listener {
     private void saveOpen(Player p,boolean key,String id){plugin.getCrateManager().save();if(key)plugin.getCrateMenu().openKeySettings(p,id);else plugin.getCrateMenu().openCrateSettings(p,id);}
     private void mMain(Player p){plugin.getCrateMenu().openMain(p);}
     private String loc(Block b){return b.getWorld().getName()+";"+b.getX()+";"+b.getY()+";"+b.getZ();}
-    @EventHandler public void onPlace(BlockPlaceEvent e){String id=plugin.getCrateManager().getTag(e.getItemInHand(),"BC_CRATE");if(id!=null&&plugin.getCrateManager().crateExists(id)){plugin.getCrateManager().addPlaced(id,loc(e.getBlockPlaced()));e.getPlayer().sendMessage(plugin.color("&aCrate &e"+id+" &acolocada."));}}
-    @EventHandler public void onBreak(BlockBreakEvent e){String id=plugin.getCrateManager().getPlacedCrate(loc(e.getBlock()));if(id!=null){plugin.getCrateManager().removePlaced(id,loc(e.getBlock()));e.setDropItems(false);e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(),plugin.getCrateManager().createCrateItem(id,1));}}
+    @EventHandler public void onPlace(BlockPlaceEvent e){String id=plugin.getCrateManager().getTag(e.getItemInHand(),"BC_CRATE");if(id!=null&&plugin.getCrateManager().crateExists(id)){plugin.getCrateManager().addPlaced(id,loc(e.getBlockPlaced()));plugin.getHologramManager().refreshAt(id,e.getBlockPlaced().getLocation());e.getPlayer().sendMessage(plugin.color("&aCrate &e"+id+" &acolocada."));}}
+    @EventHandler public void onBreak(BlockBreakEvent e){String id=plugin.getCrateManager().getPlacedCrate(loc(e.getBlock()));if(id!=null){plugin.getHologramManager().removeAt(e.getBlock().getLocation());plugin.getCrateManager().removePlaced(id,loc(e.getBlock()));e.setDropItems(false);e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(),plugin.getCrateManager().createCrateItem(id,1));}}
+    @EventHandler public void onChunkLoad(ChunkLoadEvent e){plugin.getHologramManager().handleChunkLoad(e.getChunk());}
 
     @EventHandler public void onInteract(PlayerInteractEvent e){
         if(e.getHand()!=EquipmentSlot.HAND)return;

@@ -28,6 +28,11 @@ public class CrateManager {
         configuration = YamlConfiguration.loadConfiguration(file);
         if (!configuration.isConfigurationSection("crates")) configuration.createSection("crates");
         if (!configuration.isConfigurationSection("keys")) configuration.createSection("keys");
+        for (String id : getCrateIds()) {
+            String hologram = "crates." + id + ".hologram.";
+            if (!configuration.contains(hologram + "enabled")) configuration.set(hologram + "enabled", true);
+            if (!configuration.isList(hologram + "lines")) configuration.set(hologram + "lines", Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to Preview!"));
+        }
         save();
     }
 
@@ -48,6 +53,8 @@ public class CrateManager {
         configuration.set(p + ".key-id", id);
         configuration.set(p + ".block.material", "CHEST");
         configuration.set(p + ".block.glint", false);
+        configuration.set(p + ".hologram.enabled", true);
+        configuration.set(p + ".hologram.lines", Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to Preview!"));
         configuration.set(p + ".placed", new ArrayList<String>());
         configuration.createSection(p + ".rewards");
         if (!keyExists(id)) createKey(id);
