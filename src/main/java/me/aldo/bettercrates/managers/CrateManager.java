@@ -30,7 +30,7 @@ public class CrateManager {
         if (!configuration.isConfigurationSection("keys")) configuration.createSection("keys");
         for (String id : getCrateIds()) {
             String hologram = "crates." + id + ".hologram.";
-            if (!configuration.contains(hologram + "enabled")) configuration.set(hologram + "enabled", true);
+            if (!configuration.contains(hologram + "enabled")) configuration.set(hologram + "enabled", plugin.getConfig().getBoolean("customization.hologram.enabled-by-default", true));
             if (!configuration.isList(hologram + "lines")) { List<String> defaults = plugin.getConfig().getStringList("customization.hologram.default-lines"); configuration.set(hologram + "lines", defaults.isEmpty() ? Arrays.asList("%crate_name%", "&7Right-Click to open!", "&7Left-Click to preview!") : defaults); }
             String messages = "crates." + id + ".messages.";
             if (!configuration.contains(messages + "enabled")) configuration.set(messages + "enabled", true);
@@ -54,7 +54,6 @@ public class CrateManager {
         if (crateExists(id)) return false;
         String p = "crates." + id;
         configuration.set(p + ".settings.display-name", plugin.getConfig().getString("customization.crate.default-display-name", "&e%id%").replace("%id%", id));
-        configuration.set(p + ".settings.color", plugin.getConfig().getString("customization.crate.default-color", "&e"));
         configuration.set(p + ".settings.enabled", true);
         configuration.set(p + ".settings.permission.enabled", false);
         configuration.set(p + ".settings.permission.node", "bettercrates.crate." + id + ".open");
@@ -83,7 +82,6 @@ public class CrateManager {
         configuration.set(p + ".material", plugin.getConfig().getString("customization.key.default-material", "TRIPWIRE_HOOK"));
         configuration.set(p + ".amount", 1);
         configuration.set(p + ".display-name", plugin.getConfig().getString("customization.key.default-display-name", "&6Key %id%").replace("%id%", id));
-        configuration.set(p + ".color", plugin.getConfig().getString("customization.key.default-color", "&6"));
         List<String> defaultLore = plugin.getConfig().getStringList("customization.key.default-lore");
         if (defaultLore.isEmpty()) defaultLore = Arrays.asList("&7A BetterCrates key", "&e%id%");
         List<String> keyLore = new ArrayList<String>();

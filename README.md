@@ -32,8 +32,8 @@ Customizable crates and KeyAll for **Spigot 1.12.2 / Java 8**.
 - `settings.language`: `en` or `es`.
 - `settings.prefix`: plugin chat prefix.
 - `customization.gui`: filler material, legacy data value and name.
-- `customization.crate`: default block, display name, color and glint.
-- `customization.key`: default material, display name, color, glint and lore.
+- `customization.crate`: default block, display name and glint.
+- `customization.key`: default material, display name, glint and lore.
 - `customization.hologram`: default enabled state and three default lines.
 - `customization.messages`: default private, global and reward messages for new crates.
 - `keyall.interval-seconds`: recurring event interval in seconds.

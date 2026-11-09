@@ -12,12 +12,10 @@ customization:
   crate:
     default-block: CHEST
     default-display-name: "&e%id%"
-    default-color: "&e"
     default-glint: false
   key:
     default-material: TRIPWIRE_HOOK
     default-display-name: "&6Key %id%"
-    default-color: "&6"
     default-glint: false
     default-lore:
       - "&7A BetterCrates key"
