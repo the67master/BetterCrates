@@ -25,6 +25,8 @@ public class BetterCrates extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        getConfig().options().copyDefaults(true);
+        saveConfig();
         saveIfMissing("messages.yml");
         saveIfMissing("messages_en.yml");
         saveIfMissing("messages_es.yml");
@@ -56,6 +58,8 @@ public class BetterCrates extends JavaPlugin {
 
     public void reloadBetterCrates() {
         reloadConfig();
+        getConfig().options().copyDefaults(true);
+        saveConfig();
         loadMessages();
         crateManager.load();
         if (keyAllManager != null) keyAllManager.reload();
@@ -103,7 +107,7 @@ public class BetterCrates extends JavaPlugin {
             {"Chance: ","Probabilidad: "},{"Manual chance","Probabilidad manual"},{"Automatic chance","Probabilidad automática"},{"Left-click: edit chance","Click izquierdo: cambiar probabilidad"},{"Right-click: remove reward","Click derecho: eliminar premio"},
             {"Reward Editor","Editor de recompensas"},{"Drag an item from your inventory","Arrastra un objeto de tu inventario"},{"to an empty center slot","a un espacio libre del centro"},{"Chances auto-balance to 100%","Las probabilidades se ajustan al 100%"},{"Exit","Salir"},{"Return to crate settings","Volver a la configuración de la crate"},
             {"Approximate chance: ","Probabilidad aproximada: "},{"Rewards for ","Premios de "},{"Available items: ","Objetos disponibles: "},{"This crate has no rewards configured","Esta crate no tiene premios configurados"},{"Close preview","Cerrar vista previa"},
-            {"Line 1","Línea 1"},{"Line 2","Línea 2"},{"Line 3","Línea 3"},{"Restore defaults","Restaurar valores por defecto"},{"Edit name and color","Editar nombre y color"},{"Click to edit","Click para editar"},{"Enabled","Activado"},{"Disabled","Desactivado"},{"Yes","Sí"},{"No","No"}
+            {"Line 1","Línea 1"},{"Line 2","Línea 2"},{"Line 3","Línea 3"},{"Restore defaults","Restaurar valores por defecto"},{"Edit name and color","Editar nombre y color"},{"Click to edit","Click para editar"},{"Click to open","Click para abrir"},{"Click and type a colored name (&)","Click y escribe un nombre con colores (&)"},{"Enable / Disable Hologram","Activar / desactivar holograma"},{"Right-Click to open!","¡Click derecho para abrir!"},{"Left-Click to Preview!","¡Click izquierdo para previsualizar!"},{"Enabled","Activado"},{"Disabled","Desactivado"},{"Yes","Sí"},{"No","No"}
         };
         for (String[] pair : translations) text = text.replace(pair[0], pair[1]);
         return text;
