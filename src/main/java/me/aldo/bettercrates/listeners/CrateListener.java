@@ -172,24 +172,27 @@ public class CrateListener implements Listener {
         String title=e.getView().getTitle();
         if(title.startsWith(CrateMenu.REWARDS_PREFIX)){
             e.setCancelled(true);
-            if(e.getRawSlots().size()==1){
-                int raw=e.getRawSlots().iterator().next();ItemStack old=e.getOldCursor();int contentIndex=CrateMenu.contentIndex(raw);
-                if(contentIndex>=0&&old!=null&&old.getType()!=Material.AIR&&e.getWhoClicked() instanceof Player){
-                    String data=title.substring(CrateMenu.REWARDS_PREFIX.length());int split=data.lastIndexOf(':');
-                    if(split>0){
-                        String crateId=data.substring(0,split);int page;
-                        try{page=Integer.parseInt(data.substring(split+1));}catch(NumberFormatException ex){return;}
-                        YamlConfiguration c=plugin.getCrateManager().getConfiguration();String base="crates."+crateId+".rewards.";
-                        List<String> ids=new ArrayList<String>();
-                        if(c.isConfigurationSection(base.substring(0,base.length()-1)))ids.addAll(c.getConfigurationSection(base.substring(0,base.length()-1)).getKeys(false));
-                        Collections.sort(ids);int index=page*CrateMenu.contentSlots().length+contentIndex;String rewardId=index<ids.size()?ids.get(index):null;
-                        if(rewardId==null){int n=1;while(c.isConfigurationSection(base+"reward-"+n))n++;rewardId="reward-"+n;}
-                        c.set(base+rewardId+".item",old.clone());
-                        if(!c.contains(base+rewardId+".chance-manual"))c.set(base+rewardId+".chance-manual",false);
-                        plugin.getCrateManager().normalizeRewardChances(crateId);
-                        e.setCursor(new ItemStack(Material.AIR));
-                        plugin.getCrateManager().save();plugin.getCrateMenu().openRewards((Player)e.getWhoClicked(),crateId,page);
-                    }
+            int raw=-1;
+            for(Integer slot:e.getRawSlots()){
+                if(CrateMenu.contentIndex(slot.intValue())>=0){raw=slot.intValue();break;}
+            }
+            int contentIndex=CrateMenu.contentIndex(raw);
+            ItemStack old=e.getOldCursor();
+            if(contentIndex>=0&&old!=null&&old.getType()!=Material.AIR&&e.getWhoClicked() instanceof Player){
+                String data=title.substring(CrateMenu.REWARDS_PREFIX.length());int split=data.lastIndexOf(':');
+                if(split>0){
+                    String crateId=data.substring(0,split);int page;
+                    try{page=Integer.parseInt(data.substring(split+1));}catch(NumberFormatException ex){return;}
+                    YamlConfiguration c=plugin.getCrateManager().getConfiguration();String base="crates."+crateId+".rewards.";
+                    List<String> ids=new ArrayList<String>();
+                    if(c.isConfigurationSection(base.substring(0,base.length()-1)))ids.addAll(c.getConfigurationSection(base.substring(0,base.length()-1)).getKeys(false));
+                    Collections.sort(ids);int index=page*CrateMenu.contentSlots().length+contentIndex;String rewardId=index<ids.size()?ids.get(index):null;
+                    if(rewardId==null){int n=1;while(c.isConfigurationSection(base+"reward-"+n))n++;rewardId="reward-"+n;}
+                    c.set(base+rewardId+".item",old.clone());
+                    if(!c.contains(base+rewardId+".chance-manual"))c.set(base+rewardId+".chance-manual",false);
+                    plugin.getCrateManager().normalizeRewardChances(crateId);
+                    e.setCursor(new ItemStack(Material.AIR));
+                    plugin.getCrateManager().save();plugin.getCrateMenu().openRewards((Player)e.getWhoClicked(),crateId,page);
                 }
             }
             return;
