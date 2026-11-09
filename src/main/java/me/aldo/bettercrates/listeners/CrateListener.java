@@ -29,7 +29,7 @@ public class CrateListener implements Listener {
     private final Map<UUID,String> selectedMaterial=new HashMap<UUID,String>();
     public CrateListener(BetterCrates plugin){this.plugin=plugin;}
     private void prompt(Player p,InputType t,String id,String message){pending.put(p.getUniqueId(),new Pending(t,id));p.closeInventory();p.sendMessage(plugin.color("&6BetterCrates &8» &e"+message+" &7(escribe cancelar para salir)"));}
-    private boolean isMenu(String t){return t.equals(CrateMenu.MAIN)||t.equals(CrateMenu.CRATES)||t.equals(CrateMenu.KEYS)||t.startsWith(CrateMenu.CRATE_PREFIX)||t.startsWith(CrateMenu.KEY_PREFIX)||t.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||t.startsWith(CrateMenu.KEY_ITEM_PREFIX)||t.startsWith(CrateMenu.REWARDS_PREFIX);}
+    private boolean isMenu(String t){return t.equals(CrateMenu.MAIN)||t.equals(CrateMenu.CRATES)||t.equals(CrateMenu.KEYS)||t.startsWith(CrateMenu.CRATE_PREFIX)||t.startsWith(CrateMenu.KEY_PREFIX)||t.startsWith(CrateMenu.CRATE_BLOCK_PREFIX)||t.startsWith(CrateMenu.KEY_ITEM_PREFIX)||t.startsWith(CrateMenu.REWARDS_PREFIX)||t.startsWith(CrateMenu.PREVIEW_PREFIX);}
     @EventHandler public void onClick(InventoryClickEvent e){
         if(!(e.getWhoClicked() instanceof Player))return; String title=e.getView().getTitle(); if(!isMenu(title))return; e.setCancelled(true);
         if(e.getRawSlot()<0||e.getRawSlot()>=e.getView().getTopInventory().getSize())return;
@@ -37,6 +37,16 @@ public class CrateListener implements Listener {
         if(title.equals(CrateMenu.MAIN)){if(s==10)prompt(p,InputType.CREATE_CRATE,null,"Escribe el ID de la crate");else if(s==12)prompt(p,InputType.CREATE_KEY,null,"Escribe el ID de la llave");else if(s==14)m.openCrates(p);else if(s==16)m.openKeys(p);return;}
         if(title.equals(CrateMenu.CRATES)||title.equals(CrateMenu.KEYS)){if(s==49){m.openMain(p);return;} ItemStack it=e.getCurrentItem();if(it==null||!it.hasItemMeta())return;String id=ChatColor.stripColor(it.getItemMeta().getDisplayName());if(title.equals(CrateMenu.CRATES)&&plugin.getCrateManager().crateExists(id))m.openCrateSettings(p,id);if(title.equals(CrateMenu.KEYS)&&plugin.getCrateManager().keyExists(id))m.openKeySettings(p,id);return;}
 
+
+        if(title.startsWith(CrateMenu.PREVIEW_PREFIX)){
+            String data=title.substring(CrateMenu.PREVIEW_PREFIX.length());int split=data.lastIndexOf(':');
+            if(split<1)return;String crateId=data.substring(0,split);int page;
+            try{page=Integer.parseInt(data.substring(split+1));}catch(NumberFormatException ex){return;}
+            if(s==49){p.closeInventory();return;}
+            if(s==45){m.openPreview(p,crateId,Math.max(0,page-1));return;}
+            if(s==53){m.openPreview(p,crateId,page+1);return;}
+            return;
+        }
         if(title.startsWith(CrateMenu.REWARDS_PREFIX)){
             String data=title.substring(CrateMenu.REWARDS_PREFIX.length());int split=data.lastIndexOf(':');
             if(split<1)return;String crateId=data.substring(0,split);int page;
@@ -151,5 +161,94 @@ public class CrateListener implements Listener {
     private String loc(Block b){return b.getWorld().getName()+";"+b.getX()+";"+b.getY()+";"+b.getZ();}
     @EventHandler public void onPlace(BlockPlaceEvent e){String id=plugin.getCrateManager().getTag(e.getItemInHand(),"BC_CRATE");if(id!=null&&plugin.getCrateManager().crateExists(id)){plugin.getCrateManager().addPlaced(id,loc(e.getBlockPlaced()));e.getPlayer().sendMessage(plugin.color("&aCrate &e"+id+" &acolocada."));}}
     @EventHandler public void onBreak(BlockBreakEvent e){String id=plugin.getCrateManager().getPlacedCrate(loc(e.getBlock()));if(id!=null){plugin.getCrateManager().removePlaced(id,loc(e.getBlock()));e.setDropItems(false);e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(),plugin.getCrateManager().createCrateItem(id,1));}}
-    @EventHandler public void onInteract(PlayerInteractEvent e){if(e.getAction()!=Action.RIGHT_CLICK_BLOCK||e.getClickedBlock()==null)return;String id=plugin.getCrateManager().getPlacedCrate(loc(e.getClickedBlock()));if(id!=null){e.setCancelled(true);e.getPlayer().sendMessage(plugin.color("&eCrate &6"+id+"&e: el sistema de apertura y recompensas se conectará en la siguiente etapa."));}}
+
+    @EventHandler public void onInteract(PlayerInteractEvent e){
+        if(e.getClickedBlock()==null)return;
+        if(e.getAction()!=Action.LEFT_CLICK_BLOCK&&e.getAction()!=Action.RIGHT_CLICK_BLOCK)return;
+        String id=plugin.getCrateManager().getPlacedCrate(loc(e.getClickedBlock()));
+        if(id==null)return;
+        e.setCancelled(true);
+        Player p=e.getPlayer();
+        YamlConfiguration c=plugin.getCrateManager().getConfiguration();
+        String cratePath="crates."+id+".";
+        if(!c.getBoolean(cratePath+"settings.enabled",true)){
+            p.sendMessage(plugin.color("&cEsta crate está desactivada."));
+            return;
+        }
+        if(e.getAction()==Action.LEFT_CLICK_BLOCK){
+            plugin.getCrateMenu().openPreview(p,id,0);
+            return;
+        }
+        String cratePermission=c.getString(cratePath+"settings.permission.node","bettercrates.crate."+id+".open");
+        if(c.getBoolean(cratePath+"settings.permission.enabled",false)&&!p.hasPermission(cratePermission)){
+            p.sendMessage(plugin.color("&cNo tienes permiso para abrir esta crate."));
+            return;
+        }
+        String keyId=c.getString(cratePath+"key-id",id);
+        if(!plugin.getCrateManager().keyExists(keyId)){
+            p.sendMessage(plugin.color("&cLa llave configurada para esta crate no existe."));
+            return;
+        }
+        String keyPath="keys."+keyId+".";
+        String keyPermission=c.getString(keyPath+"permission.node","bettercrates.key."+keyId+".use");
+        if(c.getBoolean(keyPath+"permission.enabled",false)&&!p.hasPermission(keyPermission)){
+            p.sendMessage(plugin.color("&cNo tienes permiso para utilizar esta llave."));
+            return;
+        }
+        int keySlot=-1;
+        ItemStack[] contents=p.getInventory().getContents();
+        for(int i=0;i<contents.length;i++){
+            if(keyId.equals(plugin.getCrateManager().getTag(contents[i],"BC_KEY"))){keySlot=i;break;}
+        }
+        if(keySlot<0){
+            org.bukkit.util.Vector push=p.getLocation().toVector().subtract(e.getClickedBlock().getLocation().add(0.5,0.5,0.5).toVector());
+            push.setY(0);
+            if(push.lengthSquared()<0.0001)push=p.getLocation().getDirection().multiply(-1).setY(0);
+            if(push.lengthSquared()>0)push.normalize().multiply(0.8);
+            push.setY(0.25);
+            p.setVelocity(push);
+            p.sendMessage(plugin.color("&cNo tienes una llave para abrir esta crate."));
+            return;
+        }
+        String rewardsPath=cratePath+"rewards.";
+        if(!c.isConfigurationSection(cratePath+"rewards")){
+            p.sendMessage(plugin.color("&cEsta crate todavía no tiene recompensas configuradas."));
+            return;
+        }
+        List<String> rewardIds=new ArrayList<String>(c.getConfigurationSection(cratePath+"rewards").getKeys(false));
+        double total=0.0;
+        for(String rewardId:rewardIds){
+            ItemStack reward=c.getItemStack(rewardsPath+rewardId+".item");
+            double chance=c.getDouble(rewardsPath+rewardId+".chance",100.0);
+            if(reward!=null&&reward.getType()!=Material.AIR&&chance>0&&!Double.isNaN(chance)&&!Double.isInfinite(chance))total+=chance;
+        }
+        if(total<=0){
+            p.sendMessage(plugin.color("&cEsta crate no tiene recompensas con probabilidad válida."));
+            return;
+        }
+        double roll=Math.random()*total;
+        String selected=null;
+        for(String rewardId:rewardIds){
+            ItemStack reward=c.getItemStack(rewardsPath+rewardId+".item");
+            double chance=c.getDouble(rewardsPath+rewardId+".chance",100.0);
+            if(reward==null||reward.getType()==Material.AIR||chance<=0||Double.isNaN(chance)||Double.isInfinite(chance))continue;
+            roll-=chance;
+            if(roll<0){selected=rewardId;break;}
+        }
+        if(selected==null){
+            for(String rewardId:rewardIds){
+                ItemStack reward=c.getItemStack(rewardsPath+rewardId+".item");
+                double chance=c.getDouble(rewardsPath+rewardId+".chance",100.0);
+                if(reward!=null&&reward.getType()!=Material.AIR&&chance>0&&!Double.isNaN(chance)&&!Double.isInfinite(chance)){selected=rewardId;break;}
+            }
+        }
+        if(selected==null)return;
+        ItemStack key=contents[keySlot];
+        if(key.getAmount()>1)key.setAmount(key.getAmount()-1);else p.getInventory().setItem(keySlot,null);
+        ItemStack prize=c.getItemStack(rewardsPath+selected+".item").clone();
+        Map<Integer,ItemStack> leftovers=p.getInventory().addItem(prize);
+        for(ItemStack leftover:leftovers.values())p.getWorld().dropItemNaturally(p.getLocation(),leftover);
+        p.sendMessage(plugin.color("&a¡Abriste la crate &e"+id+"&a y recibiste &e"+prize.getAmount()+"x "+prize.getType().name()+"&a!"));
+        p.updateInventory();
+    }
 }
