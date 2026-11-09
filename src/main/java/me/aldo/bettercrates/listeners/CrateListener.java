@@ -218,7 +218,16 @@ public class CrateListener implements Listener {
             else if(type.equals("pork"))name="chuleta cruda";
             else name=type;
         }
+        if(prize.getAmount()>1)name=pluralize(name);
         return (prize.getAmount()>1?prize.getAmount()+" ":"")+name;
+    }
+    private String pluralize(String name){
+        if(name.equalsIgnoreCase("chuleta"))return "chuletas";
+        if(name.equalsIgnoreCase("chuleta cruda"))return "chuletas crudas";
+        if(name.endsWith("z")||name.endsWith("Z"))return name.substring(0,name.length()-1)+"ces";
+        if(name.endsWith("s")||name.endsWith("x"))return name;
+        if(name.endsWith("a")||name.endsWith("e")||name.endsWith("i")||name.endsWith("o")||name.endsWith("u"))return name+"s";
+        return name+"es";
     }
     private void saveOpen(Player p,boolean key,String id){plugin.getCrateManager().save();if(key)plugin.getCrateMenu().openKeySettings(p,id);else plugin.getCrateMenu().openCrateSettings(p,id);}
     private void mMain(Player p){plugin.getCrateMenu().openMain(p);}
