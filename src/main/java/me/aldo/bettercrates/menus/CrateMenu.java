@@ -27,7 +27,7 @@ public class CrateMenu {
         ItemStack stack=new ItemStack(material); ItemMeta meta=stack.getItemMeta(); meta.setDisplayName(plugin.color(name));
         List<String> lines=new ArrayList<String>(); for(String line:lore) lines.add(plugin.color(line)); meta.setLore(lines); stack.setItemMeta(meta); return stack;
     }
-    private void fill(Inventory inv){ ItemStack pane=item(Material.STAINED_GLASS_PANE,"&8 "); for(int i=0;i<inv.getSize();i++) if(inv.getItem(i)==null) inv.setItem(i,pane); }
+    private void fill(Inventory inv){ ItemStack pane=new ItemStack(Material.STAINED_GLASS_PANE,1,(short)7); ItemMeta paneMeta=pane.getItemMeta(); paneMeta.setDisplayName(plugin.color("&8 ")); pane.setItemMeta(paneMeta); for(int i=0;i<inv.getSize();i++) if(inv.getItem(i)==null) inv.setItem(i,pane); }
     public void openMain(Player p){
         Inventory inv=Bukkit.createInventory(null,27,MAIN);
         inv.setItem(10,item(Material.EMERALD,"&a&lCrear crate","&7Crear una nueva crate"));
@@ -49,18 +49,18 @@ public class CrateMenu {
     public void openCrateSettings(Player p,String id){
         YamlConfiguration c=plugin.getCrateManager().getConfiguration(); String path="crates."+id+".settings.";
         if(!plugin.getCrateManager().crateExists(id)){openCrates(p);return;}
-        Inventory inv=Bukkit.createInventory(null,27,CRATE_PREFIX+id);
+        Inventory inv=Bukkit.createInventory(null,45,CRATE_PREFIX+id);
         inv.setItem(10,item(Material.REDSTONE_TORCH_ON,"&aActivar / desactivar","&7Estado: "+(c.getBoolean(path+"enabled",true)?"&aActivada":"&cDesactivada")));
         inv.setItem(11,item(Material.NAME_TAG,"&eNombre y color","&7Actual: "+c.getString(path+"display-name","&e"+id),"&eClick y escribe el nombre con colores &"));
         inv.setItem(12,item(Material.TRIPWIRE_HOOK,"&6Asignar llave","&7Actual: &f"+c.getString("crates."+id+".key-id",id)));
         inv.setItem(14,item(Material.IRON_DOOR,"&dPermiso para abrir","&7Requerido: "+(c.getBoolean(path+"permission.enabled",false)?"&aSí":"&cNo")));
         inv.setItem(15,item(Material.PAPER,"&eNodo de permiso","&7"+c.getString(path+"permission.node","")));
         inv.setItem(16,item(Material.CHEST,"&bEditar bloque de crate","&7Material: &f"+c.getString("crates."+id+".block.material","CHEST"),"&eClick para abrir editor"));
-        inv.setItem(17,item(Material.CHEST,"&6Editar recompensas","&7Configura los premios y sus probabilidades","&eClick para abrir"));
-        inv.setItem(18,item(Material.ENCHANTED_BOOK,"&dBrillo encantado","&7"+(c.getBoolean("crates."+id+".block.glint",false)?"&aActivado":"&cDesactivado")));
-        inv.setItem(19,item(Material.NAME_TAG,"&bEditar holograma","&7Estado: "+(c.getBoolean("crates."+id+".hologram.enabled",true)?"&aActivado":"&cDesactivado"),"&eConfigura las 3 líneas sobre la crate"));
-        inv.setItem(20,item(Material.PAPER,"&bMensajes de apertura","&7Personaliza mensajes privados y globales"));
-        inv.setItem(22,item(Material.ARROW,"&cVolver")); fill(inv); p.openInventory(inv);
+        inv.setItem(19,item(Material.CHEST,"&6Editar recompensas","&7Configura los premios y sus probabilidades","&eClick para abrir"));
+        inv.setItem(20,item(Material.ENCHANTED_BOOK,"&dBrillo encantado","&7"+(c.getBoolean("crates."+id+".block.glint",false)?"&aActivado":"&cDesactivado")));
+        inv.setItem(21,item(Material.NAME_TAG,"&bEditar holograma","&7Estado: "+(c.getBoolean("crates."+id+".hologram.enabled",true)?"&aActivado":"&cDesactivado"),"&eConfigura las 3 líneas sobre la crate"));
+        inv.setItem(22,item(Material.PAPER,"&bMensajes de apertura","&7Personaliza mensajes privados y globales"));
+        inv.setItem(40,item(Material.ARROW,"&cVolver")); fill(inv); p.openInventory(inv);
     }
     public void openHologramEditor(Player p,String id){
         YamlConfiguration c=plugin.getCrateManager().getConfiguration();
@@ -69,20 +69,20 @@ public class CrateMenu {
         List<String> lines=c.getStringList(base+"lines");
         while(lines.size()<3)lines.add("");
         String crateName=c.getString("crates."+id+".settings.display-name","&e"+id);
-        Inventory inv=Bukkit.createInventory(null,27,HOLOGRAM_PREFIX+id);
+        Inventory inv=Bukkit.createInventory(null,45,HOLOGRAM_PREFIX+id);
         inv.setItem(10,item(Material.REDSTONE_TORCH_ON,"&aHolograma activado / desactivado","&7Estado: "+(c.getBoolean(base+"enabled",true)?"&aActivado":"&cDesactivado")));
         inv.setItem(12,item(Material.NAME_TAG,"&eLínea 1","&7Actual: "+lines.get(0).replace("%crate_name%",crateName),"&eClick para editar"));
         inv.setItem(13,item(Material.PAPER,"&eLínea 2","&7Actual: "+lines.get(1),"&eClick para editar"));
         inv.setItem(14,item(Material.PAPER,"&eLínea 3","&7Actual: "+lines.get(2),"&eClick para editar"));
         inv.setItem(16,item(Material.BOOK,"&bRestaurar valores por defecto","&7"+crateName,"&7&fRight-Click to open!","&7&fLeft-Click to Preview!"));
-        inv.setItem(22,item(Material.ARROW,"&cVolver"));
+        inv.setItem(40,item(Material.ARROW,"&cVolver"));
         fill(inv);p.openInventory(inv);
     }
     public void openMessagesEditor(Player p,String id){
         YamlConfiguration c=plugin.getCrateManager().getConfiguration();
         String base="crates."+id+".messages.";
         if(!plugin.getCrateManager().crateExists(id)){openCrates(p);return;}
-        Inventory inv=Bukkit.createInventory(null,27,MESSAGES_PREFIX+id);
+        Inventory inv=Bukkit.createInventory(null,45,MESSAGES_PREFIX+id);
         inv.setItem(10,item(Material.REDSTONE_TORCH_ON,"&aTodos los mensajes","&7Estado: "+(c.getBoolean(base+"enabled",true)?"&aActivados":"&cDesactivados"),"&7Desactiva esto para silenciar todos"));
         inv.setItem(12,item(Material.NAME_TAG,"&eMensaje privado al abrir","&7Estado: "+(c.getBoolean(base+"player.enabled",false)?"&aActivado":"&cDesactivado"),"&7Actual: "+c.getString(base+"player.message","")));
         inv.setItem(13,item(Material.PAPER,"&eEditar mensaje privado","&7Click para escribir el mensaje"));
@@ -96,13 +96,13 @@ public class CrateMenu {
     public void openKeySettings(Player p,String id){
         YamlConfiguration c=plugin.getCrateManager().getConfiguration(); String path="keys."+id+".";
         if(!plugin.getCrateManager().keyExists(id)){openKeys(p);return;}
-        Inventory inv=Bukkit.createInventory(null,27,KEY_PREFIX+id);
+        Inventory inv=Bukkit.createInventory(null,45,KEY_PREFIX+id);
         inv.setItem(10,item(Material.NAME_TAG,"&eNombre y color","&7Actual: "+c.getString(path+"display-name","&6"+id),"&eClick y escribe el nombre con colores &"));
         inv.setItem(12,item(Material.CHEST,"&bEditar objeto de llave","&7Material: &f"+c.getString(path+"material","TRIPWIRE_HOOK"),"&eClick para abrir editor"));
         inv.setItem(14,item(Material.IRON_DOOR,"&dPermiso para usar llave","&7Requerido: "+(c.getBoolean(path+"permission.enabled",false)?"&aSí":"&cNo")));
         inv.setItem(15,item(Material.PAPER,"&eNodo de permiso","&7"+c.getString(path+"permission.node","")));
         inv.setItem(16,item(Material.ENCHANTED_BOOK,"&dBrillo encantado","&7"+(c.getBoolean(path+"glint",false)?"&aActivado":"&cDesactivado")));
-        inv.setItem(22,item(Material.ARROW,"&cVolver")); fill(inv); p.openInventory(inv);
+        inv.setItem(40,item(Material.ARROW,"&cVolver")); fill(inv); p.openInventory(inv);
     }
     public void openCrateBlockEditor(Player p,String id){
         Inventory inv=Bukkit.createInventory(null,27,CRATE_BLOCK_PREFIX+id); YamlConfiguration c=plugin.getCrateManager().getConfiguration();

@@ -42,7 +42,7 @@ public class CrateListener implements Listener {
 
         if(title.startsWith(CrateMenu.MESSAGES_PREFIX)){
             String id=title.substring(CrateMenu.MESSAGES_PREFIX.length()),base="crates."+id+".messages.";
-            if(s==22)m.openCrateSettings(p,id);
+            if(s==40)m.openCrateSettings(p,id);
             else if(s==10){c.set(base+"enabled",!c.getBoolean(base+"enabled",true));plugin.getCrateManager().save();m.openMessagesEditor(p,id);}
             else if(s==12){c.set(base+"player.enabled",!c.getBoolean(base+"player.enabled",false));plugin.getCrateManager().save();m.openMessagesEditor(p,id);}
             else if(s==13)prompt(p,InputType.CRATE_MESSAGE,id+"|player.message","Escribe el mensaje privado (%crate%, %player%)");
@@ -106,17 +106,17 @@ public class CrateListener implements Listener {
         }
         if(title.startsWith(CrateMenu.CRATE_PREFIX)){
             String id=title.substring(CrateMenu.CRATE_PREFIX.length()),path="crates."+id+".settings.";
-            if(s==22)m.openCrates(p);
+            if(s==40)m.openCrates(p);
             else if(s==10){c.set(path+"enabled",!c.getBoolean(path+"enabled",true));plugin.getCrateManager().save();m.openCrateSettings(p,id);}
             else if(s==11)prompt(p,InputType.CRATE_NAME,id,"Escribe el nombre de la crate con colores (&e, &6, etc.)");
             else if(s==12)prompt(p,InputType.CRATE_KEY,id,"Escribe el ID de una llave existente");
             else if(s==14){c.set(path+"permission.enabled",!c.getBoolean(path+"permission.enabled",false));plugin.getCrateManager().save();m.openCrateSettings(p,id);}
             else if(s==15)prompt(p,InputType.CRATE_PERMISSION,id,"Escribe el nodo de permiso");
             else if(s==16)m.openCrateBlockEditor(p,id);
-            else if(s==17)m.openRewards(p,id,0);
-            else if(s==18){String q="crates."+id+".block.glint";c.set(q,!c.getBoolean(q,false));plugin.getCrateManager().save();m.openCrateSettings(p,id);}
-            else if(s==19)m.openHologramEditor(p,id);
-            else if(s==20)m.openMessagesEditor(p,id);
+            else if(s==19)m.openRewards(p,id,0);
+            else if(s==20){String q="crates."+id+".block.glint";c.set(q,!c.getBoolean(q,false));plugin.getCrateManager().save();m.openCrateSettings(p,id);}
+            else if(s==21)m.openHologramEditor(p,id);
+            else if(s==22)m.openMessagesEditor(p,id);
             return;
         }
         if(title.startsWith(CrateMenu.KEY_PREFIX)){
